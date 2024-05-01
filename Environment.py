@@ -177,6 +177,7 @@ MANUAL_GAME = False
 random.seed(42)
 
 
+
 class Environment:
     def __init__(self, width = WINDOWWIDTH, height = WINDOWHEIGHT) -> None:
         self.width = width
@@ -186,6 +187,7 @@ class Environment:
         self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2)
         self.TOPMARGIN    = self.height - (BOARDHEIGHT * self.box_size) - 5
 
+        self.event_queue = []
         self.board              = self.get_blank_board()
         self.last_movedown_time = time.time()
         self.last_moveside_time = time.time()
@@ -199,7 +201,7 @@ class Environment:
         self.next_piece         = self.get_new_piece()
 
     def reset(self):
-        self.root = pygame.Surface((self.width, self.height))
+        self.event_queue  = []
         self.board              = self.get_blank_board()
         self.last_movedown_time = time.time()
         self.last_moveside_time = time.time()
@@ -230,10 +232,11 @@ class Environment:
                 # Can't fit a new piece on the board, so game over.
                 return False
 
+        
         # Check for quit
         self.check_quit()
 
-        for event in pygame.event.get():
+        for event in pygame.event.get() + self.event_queue:
             # Event handling loop
             if (event.type == KEYUP):
                 if (event.key == K_p):
