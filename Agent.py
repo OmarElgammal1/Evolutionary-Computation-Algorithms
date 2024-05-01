@@ -1,13 +1,13 @@
 import random
 N_GENES = 4
 class Agent():
-    def __init__(self):
-        self.chromosome = []
-        for _ in range(N_GENES):
-            self.chromosome.append(random.uniform(-1, 1))
-
-    def __init__(self, chromosome):
-        self.chromosome = chromosome
+    def __init__(self, chromosome = None):
+        if chromosome == None:
+            self.chromosome = []
+            for _ in range(N_GENES):
+                self.chromosome.append(random.uniform(-1, 1))
+        else:
+            self.chromosome = chromosome
 
     def evaluateOptions(self, options):
         bestIndex = 0
