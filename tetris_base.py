@@ -169,6 +169,8 @@ PIECES = {'S': S_SHAPE_TEMPLATE,
 # Define if the game is manual or not
 MANUAL_GAME = False
 
+# Setting up the seed
+random.seed(42)
 ##############################################################################
 # MAIN GAME
 ##############################################################################
