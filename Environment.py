@@ -777,12 +777,31 @@ def main():
     BIGFONT     = pygame.font.Font('freesansbold.ttf', 100)
     
     pygame.display.set_caption('Tetris AI')
-    env = Environment(200, 220)
-    can_continue = True
-    while True and can_continue:
-        can_continue = env.step()
-        DISPLAYSURF.blit(env.root, (0,0))  # Blit environment surface onto main surface
+    
+    rows = 3
+    cols = 3
+    env_width = WINDOWWIDTH // cols
+    env_height = WINDOWHEIGHT // rows
+
+    # Create a grid of environments
+    environments = [[Environment(env_width, env_height) for _ in range(cols)] for _ in range(rows)]
+    can_continuestates = [[True for _ in range(cols)] for _ in range(rows)]
+    while True:
+        DISPLAYSURF.fill((0, 0, 0))  # Clear the main display surface
+
+        # Render and display each environment in the grid
+        found = False
+        for row in range(rows):
+            for col in range(cols):
+                if can_continuestates[row][col]:
+                    found = True
+                    env = environments[row][col]
+                    can_continuestates[row][col] = env.step()  # Perform environment step
+                    DISPLAYSURF.blit(env.root, (col * env_width, row * env_height))  # Blit environment surface onto main surface
+        
+        if not found:
+            break
         pygame.display.update()
         FPSCLOCK.tick(FPS)
-            
+
 main()
