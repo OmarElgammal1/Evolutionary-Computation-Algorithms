@@ -182,7 +182,7 @@ class Environment:
         self.width = width
         self.height = height
         self.root = pygame.Surface((width, height))
-        self.box_size = WINDOWWIDTH // 26
+        self.box_size = self.width // 26
         self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2)
         self.TOPMARGIN    = self.height - (BOARDHEIGHT * self.box_size) - 5
 
@@ -625,9 +625,9 @@ class Environment:
         self.root.blit(next_surf, next_rect)
 
         # draw the "next" piece
-        self.draw_piece(piece, pixelx=self.width-int(3 / 13 * self.width), pixely=160)
+        self.draw_piece(piece, pixelx=self.width-int(3 / 13 * self.width), pixely=int(160/690*self.height))
 
-
+#region Stats
     ##############################################################################
     # GAME STATISTICS FUNCTIONS
     ##############################################################################
@@ -763,7 +763,7 @@ class Environment:
 
         return  piece_sides, floor_sides, wall_sides
 
-
+#endregion
 
 
 def main():
@@ -777,7 +777,7 @@ def main():
     BIGFONT     = pygame.font.Font('freesansbold.ttf', 100)
     
     pygame.display.set_caption('Tetris AI')
-    env = Environment(600, 690)
+    env = Environment(200, 220)
     can_continue = True
     while True and can_continue:
         can_continue = env.step()
