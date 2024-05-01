@@ -199,7 +199,7 @@ class Environment:
         self.level, self.fall_freq   = self.calc_level_and_fall_freq(self.score)
         self.falling_piece      = self.get_new_piece()
         self.next_piece         = self.get_new_piece()
-
+        self.turns = 0
     def reset(self):
         self.event_queue  = []
         self.board              = self.get_blank_board()
@@ -213,17 +213,17 @@ class Environment:
         self.level, self.fall_freq   = self.calc_level_and_fall_freq(self.score)
         self.falling_piece      = self.get_new_piece()
         self.next_piece         = self.get_new_piece()
-
+        self.agent = None
+        self.turns = 0
     def step(self):
         # Setup variables
-
         # Game Loop
         if (self.falling_piece == None):
             # No falling piece in play, so start a new piece at the top
             self.falling_piece = self.next_piece
             self.next_piece    = self.get_new_piece()
             self.score += 1
-
+            self.turns += 1
             # Reset self.last_fall_time
             self.last_fall_time = time.time()
 
@@ -232,7 +232,7 @@ class Environment:
                 # Can't fit a new piece on the board, so game over.
                 return False
 
-        
+   
         # Check for quit
         self.check_quit()
 
@@ -785,29 +785,36 @@ class GameEngine:
         self.cols = 3
         self.env_width = WINDOWWIDTH // cols
         self.env_height = WINDOWHEIGHT // rows
-        self.environments = [[Environment(self.env_width, self.env_height) for _ in range(cols)] for _ in range(rows)]
-        self.can_continue = [[True for _ in range(cols)] for _ in range(rows)]
+        self.environments = [Environment(self.env_width, self.env_height) for _ in range(rows * cols)]
+        self.can_continue = [True for _ in range(rows * cols)]
+    def reset_envs(self):
+        for idx, env in enumerate(self.environments):
+            env.reset()
+            self.can_continue[idx] = True
 
-    def run_envs(self,):
+    def run_envs(self, maxTurns):
         while True:
             self.DISPLAYSURF.fill((0, 0, 0))  # Clear the main display surface
-
-            # Render and display each environment in the grid
             found = False
-            for row in range(self.rows):
-                for col in range(self.cols):
-                    if self.can_continue[row][col]:
-                        found = True
-                        env = self.environments[row][col]
-                        self.can_continue[row][col] = env.step()  # Perform environment step
-                        self.DISPLAYSURF.blit(env.root, (col * self.env_width, row * self.env_height))  # Blit environment surface onto main surface
+
+            for idx, env in enumerate(self.environments):
+                if self.can_continue[idx]:
+                    found = True
+                    self.can_continue[idx] = env.step()  # Perform environment step
+                    if env.turns > maxTurns:
+                        self.can_continue[idx] = False;
+                    row = idx // self.cols
+                    col = idx % self.cols
+                    self.DISPLAYSURF.blit(env.root, (col * self.env_width, row * self.env_height))  # Blit environment surface onto main surface
+
             if not found:
                 break
+
             pygame.display.update()
             FPSCLOCK.tick(FPS)
-def main():
-    
 
+
+def main():
     
     pygame.display.set_caption('Tetris AI')
     
@@ -817,6 +824,8 @@ def main():
     # Create a grid of environments
 
     engine = GameEngine(rows, cols);
-    engine.run_envs()
+    while True:
+        engine.reset_envs()
+        engine.run_envs()
 
 main()
