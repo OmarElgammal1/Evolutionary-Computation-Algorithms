@@ -769,44 +769,54 @@ class Environment:
 #endregion
 
 
+class GameEngine:
+    def __init__(self, rows = 3, cols = 3) -> None:
+        global FPSCLOCK, BASICFONT, BIGFONT
+        pygame.init()
+
+        FPSCLOCK    = pygame.time.Clock()
+        self.DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
+        BASICFONT   = pygame.font.Font('freesansbold.ttf', 18)
+        BIGFONT     = pygame.font.Font('freesansbold.ttf', 100)
+    
+        pygame.display.set_caption('Tetris AI')
+    
+        self.rows = 3
+        self.cols = 3
+        self.env_width = WINDOWWIDTH // cols
+        self.env_height = WINDOWHEIGHT // rows
+        self.environments = [[Environment(self.env_width, self.env_height) for _ in range(cols)] for _ in range(rows)]
+        self.can_continue = [[True for _ in range(cols)] for _ in range(rows)]
+
+    def run_envs(self,):
+        while True:
+            self.DISPLAYSURF.fill((0, 0, 0))  # Clear the main display surface
+
+            # Render and display each environment in the grid
+            found = False
+            for row in range(self.rows):
+                for col in range(self.cols):
+                    if self.can_continue[row][col]:
+                        found = True
+                        env = self.environments[row][col]
+                        self.can_continue[row][col] = env.step()  # Perform environment step
+                        self.DISPLAYSURF.blit(env.root, (col * self.env_width, row * self.env_height))  # Blit environment surface onto main surface
+            if not found:
+                break
+            pygame.display.update()
+            FPSCLOCK.tick(FPS)
 def main():
     
-    global FPSCLOCK, BASICFONT, BIGFONT
-    pygame.init()
 
-    FPSCLOCK    = pygame.time.Clock()
-    DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
-    BASICFONT   = pygame.font.Font('freesansbold.ttf', 18)
-    BIGFONT     = pygame.font.Font('freesansbold.ttf', 100)
     
     pygame.display.set_caption('Tetris AI')
     
     rows = 3
     cols = 3
-    env_width = WINDOWWIDTH // cols
-    env_height = WINDOWHEIGHT // rows
 
     # Create a grid of environments
-    environments = [[Environment(env_width, env_height) for _ in range(cols)] for _ in range(rows)]
-    can_continuestates = [[True for _ in range(cols)] for _ in range(rows)]
-    while True:
-        DISPLAYSURF.fill((0, 0, 0))  # Clear the main display surface
 
-        # Render and display each environment in the grid
-        found = False
-        for row in range(rows):
-            for col in range(cols):
-                if can_continuestates[row][col]:
-                    found = True
-                    env = environments[row][col]
-                    can_continuestates[row][col] = env.step()  # Perform environment step
-                    DISPLAYSURF.blit(env.root, (col * env_width, row * env_height))  # Blit environment surface onto main surface
-                    if not can_continuestates[row][col]:
-                        env.reset()
-                        can_continuestates[row][col] = True
-        if not found:
-            break
-        pygame.display.update()
-        FPSCLOCK.tick(FPS)
+    engine = GameEngine(rows, cols);
+    engine.run_envs()
 
 main()
