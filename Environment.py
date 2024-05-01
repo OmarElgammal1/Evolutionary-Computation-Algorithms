@@ -548,7 +548,7 @@ class Environment:
         """
         return (self.XMARGIN + (boxx * self.box_size)), (self.TOPMARGIN + (boxy * self.box_size))
 
-
+#region DrawStuff
     def draw_box(self, boxx, boxy, color, pixelx=None, pixely=None):
         """Draw box
 
@@ -626,7 +626,7 @@ class Environment:
 
         # draw the "next" piece
         self.draw_piece(piece, pixelx=self.width-int(3 / 13 * self.width), pixely=int(160/690*self.height))
-
+#endregion
 #region Stats
     ##############################################################################
     # GAME STATISTICS FUNCTIONS
@@ -798,7 +798,9 @@ def main():
                     env = environments[row][col]
                     can_continuestates[row][col] = env.step()  # Perform environment step
                     DISPLAYSURF.blit(env.root, (col * env_width, row * env_height))  # Blit environment surface onto main surface
-        
+                    if not can_continuestates[row][col]:
+                        env.reset()
+                        can_continuestates[row][col] = True
         if not found:
             break
         pygame.display.update()
