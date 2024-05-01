@@ -1,13 +1,13 @@
 import random, time, pygame, sys
 from pygame.locals import *
-
+from Agent import Agent
 #region CONSTANTS
 ##############################################################################
 # SETTING UP GENERAL CONSTANTS
 ##############################################################################
 
 # Board config
-FPS          = 10
+FPS          = 20
 WINDOWWIDTH  = 650
 WINDOWHEIGHT = 690
 BOXSIZE      = 25
@@ -174,7 +174,6 @@ MANUAL_GAME = False
 #endregion
 
 # Setting the random seed
-random.seed(42)
 
 
 
@@ -213,7 +212,7 @@ class Environment:
         self.level, self.fall_freq   = self.calc_level_and_fall_freq(self.score)
         self.falling_piece      = self.get_new_piece()
         self.next_piece         = self.get_new_piece()
-        self.agent = None
+        self.agent : Agent= None
         self.turns = 0
     def step(self):
         # Setup variables
@@ -236,6 +235,14 @@ class Environment:
         # Check for quit
         self.check_quit()
 
+        #if the environment has an agent
+        #eval all possible moves using the agent and choose the best
+        #then add to event_queue the events to lead to that move
+        if hasattr(self, "agent"):
+            move = self.best_move();
+            # print(move)
+            self.do_move(move)
+            pass
         for event in pygame.event.get() + self.event_queue:
             # Event handling loop
             if (event.type == KEYUP):
@@ -309,6 +316,7 @@ class Environment:
 
                     self.falling_piece['y'] += i - 1
 
+        self.event_queue.clear()
         # Handle moving the piece because of user input
         if (self.moving_left or self.moving_right) and time.time() - self.last_moveside_time > MOVESIDEWAYSFREQ:
             if self.moving_left and self.is_valid_position(self.board, self.falling_piece, adj_X=-1):
@@ -462,6 +470,7 @@ class Environment:
         for x in range(TEMPLATEWIDTH):
             for y in range(TEMPLATEHEIGHT):
                 if PIECES[piece['shape']][piece['rotation']][y][x] != BLANK:
+                    print(f'{piece=}')
                     board[x + piece['x']][y + piece['y']] = piece['color']
 
 
@@ -634,6 +643,39 @@ class Environment:
     ##############################################################################
     # GAME STATISTICS FUNCTIONS
     ##############################################################################
+    def do_move(self, move):
+        piece = dict(self.falling_piece)
+        r = piece['rotation']
+        while r != move['r']:
+            self.event_queue.append(pygame.event.Event(KEYDOWN, {'key': K_UP}))
+            self.event_queue.append(pygame.event.Event(KEYUP, {'key': K_UP}))
+            r = (r + 1) % len(PIECES[piece['shape']])
+        x = int(piece['x'])
+
+        while x < move['x']:
+            x += 1
+            self.event_queue.append(pygame.event.Event(KEYDOWN, {"key": K_RIGHT}))
+            self.event_queue.append(pygame.event.Event(KEYUP, {"key": K_RIGHT}))
+
+        while x > move['x']:
+            self.event_queue.append(pygame.event.Event(KEYDOWN, {"key": K_LEFT}))
+            self.event_queue.append(pygame.event.Event(KEYUP, {"key": K_LEFT}))
+            x -= 1
+    def best_move(self):
+        total_holes_bef, total_blocking_bloks_bef = self.calc_initial_move_info(self.board)
+        best_rating = -11111111111;
+        best_move = {'x':0, 'r':0}
+        for x in range(BOARDWIDTH):
+            for r in range(len(PIECES[self.falling_piece['shape']])):
+                result = self.calc_move_info(self.board, dict(self.falling_piece),x, r, total_holes_bef, total_blocking_bloks_bef)
+                if result[0]:
+                    rating = self.agent.evaluateOption(result[1:5])
+                    if best_rating <= rating:
+                        best_rating = rating
+                        best_move['x'] = x;
+                        best_move['r'] = r;
+        
+        return best_move
 
     def calc_move_info(self, board, piece, x, r, total_holes_bef, total_blocking_bloks_bef):
         """Calculate informations based on the current play"""
@@ -813,19 +855,3 @@ class GameEngine:
             pygame.display.update()
             FPSCLOCK.tick(FPS)
 
-
-def main():
-    
-    pygame.display.set_caption('Tetris AI')
-    
-    rows = 3
-    cols = 3
-
-    # Create a grid of environments
-
-    engine = GameEngine(rows, cols);
-    while True:
-        engine.reset_envs()
-        engine.run_envs()
-
-main()
