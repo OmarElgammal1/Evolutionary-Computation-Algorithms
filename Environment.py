@@ -231,19 +231,13 @@ class Environment:
                 # Can't fit a new piece on the board, so game over.
                 return False
 
-   
-        # Check for quit
-        self.check_quit()
-
         #if the environment has an agent
         #eval all possible moves using the agent and choose the best
         #then add to event_queue the events to lead to that move
         if hasattr(self, "agent"):
             move = self.best_move();
-            # print(move)
             self.do_move(move)
-            pass
-        for event in pygame.event.get() + self.event_queue:
+        for event in self.event_queue:
             # Event handling loop
             if (event.type == KEYUP):
                 if (event.key == K_p):
@@ -381,16 +375,11 @@ class Environment:
         surf = font.render(text, True, color)
 
         return surf, surf.get_rect()
-    def terminate(self):
-        """Terminate the game"""
-        pygame.quit()
-        sys.exit()
+
 
 
     def check_key_press(self):
         # Go through event queue looking for a KEYUP event.
-        # Grab KEYDOWN events to remove them from the event queue.
-        self.check_quit()
 
         for event in pygame.event.get([KEYDOWN, KEYUP]):
             if event.type == KEYDOWN:
@@ -423,14 +412,6 @@ class Environment:
             FPSCLOCK.tick()
 
 
-    def check_quit(self):
-        for event in pygame.event.get(QUIT): # get all the QUIT events
-            self.terminate() # terminate if any QUIT events are present
-
-        for event in pygame.event.get(KEYUP): # get all the KEYUP events
-            if event.key == K_ESCAPE:
-                self.terminate() # terminate if the KEYUP event was for the Esc key
-            pygame.event.post(event) # put the other KEYUP event objects back
 
 
     def calc_level_and_fall_freq(self, score):
@@ -470,7 +451,6 @@ class Environment:
         for x in range(TEMPLATEWIDTH):
             for y in range(TEMPLATEHEIGHT):
                 if PIECES[piece['shape']][piece['rotation']][y][x] != BLANK:
-                    print(f'{piece=}')
                     board[x + piece['x']][y + piece['y']] = piece['color']
 
 
@@ -834,11 +814,28 @@ class GameEngine:
             env.reset()
             self.can_continue[idx] = True
 
+    def check_quit(self):
+        for event in pygame.event.get(QUIT): # get all the QUIT events
+            self.terminate() # terminate if any QUIT events are present
+        for event in pygame.event.get(KEYUP): # get all the KEYUP events
+            if event.key == K_ESCAPE:
+                self.terminate() # terminate if the KEYUP event was for the Esc key
+            pygame.event.post(event) # put the other KEYUP event objects back
+
+    def propagate_events(self):
+        for event in pygame.event.get([KEYUP, KEYDOWN]):
+            for env in self.environments:
+                env.event_queue.append(event)
+    def terminate(self):
+        """Terminate the game"""
+        pygame.quit()
+        sys.exit()
     def run_envs(self, maxTurns):
         while True:
             self.DISPLAYSURF.fill((0, 0, 0))  # Clear the main display surface
             found = False
-
+            self.check_quit()
+            self.propagate_events()
             for idx, env in enumerate(self.environments):
                 if self.can_continue[idx]:
                     found = True
