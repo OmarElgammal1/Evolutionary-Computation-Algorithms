@@ -8,8 +8,8 @@ def main():
 
 	pygame.display.set_caption('Tetris AI')
 
-	rows = 3	
-	cols = 3
+	rows = 4	
+	cols = 4
 
 	engine = GameEngine(rows, cols);
 	evol = Evolution(engine, rows * cols, 0.01)
