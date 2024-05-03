@@ -183,7 +183,7 @@ class Environment:
         self.height = height
         self.root = pygame.Surface((width, height))
         self.box_size = self.width // 26
-        self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2)
+        self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2) // 4
         self.TOPMARGIN    = self.height - (BOARDHEIGHT * self.box_size) - 5
 
         self.event_queue = []
@@ -587,13 +587,16 @@ class Environment:
         # Draw the score text
         score_surf = BASICFONT.render('Score: %s' % score, True, TEXTCOLOR)
         score_rect = score_surf.get_rect()
-        score_rect.topleft = (self.width - int(3/13 * self.width), int(8/690 * self.height))
+        # score_rect.topleft = (self.width - int(3/13 * self.width), int(8/690 * self.height))
+        score_rect.topleft = (self.XMARGIN + self.box_size * (BOARDWIDTH + 1), int(8/690 * self.height))
+
         self.root.blit(score_surf, score_rect)
 
         # draw the level text
         levelSurf = BASICFONT.render('Level: %s' % level, True, TEXTCOLOR)
         levelRect = levelSurf.get_rect()
         levelRect.topleft = (self.width - int(3/13 * self.width), int(110/690*self.height))
+        levelRect.topleft = (self.XMARGIN + self.box_size * (BOARDWIDTH + 1), int(110/690*self.height))
         self.root.blit(levelSurf, levelRect)
 
 
@@ -620,11 +623,13 @@ class Environment:
         # draw the "next" text
         next_surf = BASICFONT.render('Next:', True, TEXTCOLOR)
         next_rect = next_surf.get_rect()
-        next_rect.topleft = (self.width - int(3 / 13 * self.width), int(160/690*self.height))
+        # next_rect.topleft = (self.width - int(3 / 13 * self.width), int(160/690*self.height))
+        next_rect.topleft = (self.XMARGIN + self.box_size * (BOARDWIDTH + 1), int(160/690*self.height))
         self.root.blit(next_surf, next_rect)
 
         # draw the "next" piece
-        self.draw_piece(piece, pixelx=self.width-int(3 / 13 * self.width), pixely=int(160/690*self.height))
+        # self.draw_piece(piece, pixelx=self.width-int(3 / 13 * self.width), pixely=int(160/690*self.height))
+        self.draw_piece(piece, pixelx=self.XMARGIN + self.box_size * (BOARDWIDTH + 1), pixely=int(160/690*self.height))
 #endregion
 #region Stats
     ##############################################################################
@@ -805,8 +810,8 @@ class GameEngine:
 
         FPSCLOCK    = pygame.time.Clock()
         self.DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
-        BASICFONT   = pygame.font.Font('freesansbold.ttf', 18)
-        BIGFONT     = pygame.font.Font('freesansbold.ttf', 100)
+        BASICFONT   = pygame.font.Font('freesansbold.ttf', -(-18 // max_cols)  +  2 * max_cols)
+        BIGFONT     = pygame.font.Font('freesansbold.ttf', -(-100 // max_cols) +  2 * max_cols)
         self.cols = max_cols
         self.rows = n_envs // max_cols + (n_envs % max_cols > 0)
 
