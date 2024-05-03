@@ -22,7 +22,19 @@ class Evolution:
 	# Main training function. Goes through every step of evolution process.
     # Called every time after population evaluation by interacting with the environment.
 	def nextGeneration(self,):
-		self.generateRandomPopulation()
+		# sort the population by fitness
+		self.population.sort(key = lambda x: x.fitness, reverse = True)
+		newPopulation = self.population[:2]
+		# create the rest of the population
+		for i in range(self.populationSize - 2):
+			agent1, agent2 = random.choices(self.population, k = 2)
+			newChromosome = agent1.crossover(agent2)
+			# mutation
+			newAgent = Agent(newChromosome)
+			newAgent.mutate(self.mutationRate)
+			newPopulation.append(newAgent)
+		# set the new population
+		self.population = newPopulation
 
 
 	def evolve(self, numGenerations, maxTurns):
