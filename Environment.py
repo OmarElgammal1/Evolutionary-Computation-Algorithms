@@ -799,7 +799,7 @@ class Environment:
 
 
 class GameEngine:
-    def __init__(self, rows = 3, cols = 3) -> None:
+    def __init__(self, n_envs = 3, max_cols = 3) -> None:
         global FPSCLOCK, BASICFONT, BIGFONT
         pygame.init()
 
@@ -807,15 +807,14 @@ class GameEngine:
         self.DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
         BASICFONT   = pygame.font.Font('freesansbold.ttf', 18)
         BIGFONT     = pygame.font.Font('freesansbold.ttf', 100)
-    
+        self.cols = max_cols
+        self.rows = n_envs // max_cols + (n_envs % max_cols > 0)
+
         pygame.display.set_caption('Tetris AI')
-    
-        self.rows = 3
-        self.cols = 3
-        self.env_width = WINDOWWIDTH // cols
-        self.env_height = WINDOWHEIGHT // rows
-        self.environments = [Environment(self.env_width, self.env_height) for _ in range(rows * cols)]
-        self.can_continue = [True for _ in range(rows * cols)]
+        self.env_width = WINDOWWIDTH // self.cols
+        self.env_height = WINDOWHEIGHT // self.rows
+        self.environments = [Environment(self.env_width, self.env_height) for _ in range(n_envs)]
+        self.can_continue = [True for _ in range(n_envs)]
     def reset_envs(self):
         for idx, env in enumerate(self.environments):
             env.reset()
@@ -849,10 +848,9 @@ class GameEngine:
                     self.can_continue[idx] = env.step()  # Perform environment step
                     if env.turns > maxTurns:
                         self.can_continue[idx] = False;
-                    row = idx // self.cols
-                    col = idx % self.cols
+                row = idx // self.cols
+                col = idx % self.cols
                 self.DISPLAYSURF.blit(env.root, (col * self.env_width, row * self.env_height))  # Blit environment surface onto main surface
-
             pygame.display.update()
             FPSCLOCK.tick(FPS)
             if not found:
