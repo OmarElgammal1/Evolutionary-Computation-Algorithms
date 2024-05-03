@@ -32,6 +32,7 @@ class Evolution:
 			# assign each agent an environment
 			for idx, agent in enumerate(self.population):
 				self.engine.environments[idx].agent = agent
+			self.engine.side_panel_data = {'gen':f"{currGen}/{numGenerations}", 'mxTurns':maxTurns}
 			self.engine.run_envs(maxTurns)
 
 			for env in self.engine.environments:
