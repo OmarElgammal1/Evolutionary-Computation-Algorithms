@@ -22,6 +22,16 @@ class Agent():
             value += self.chromosome[i] * option[i]
         return value
 
+    def crossover(self, other):
+        offspring = []
+        parent1 = self.getChromosome()
+        parent2 = other.getChromosome()
+        offspring = []
+        for g in range(N_GENES):
+            offspring.append((parent1[g] + parent2[g]) / 2)
+        return offspring
+
+
     # GENERATES 7 OTHER AGENTS WITH MUTATED VALUES TO ITSELF AND RETURNS THEM
     def mutate(self):
         for j in range(N_GENES):
