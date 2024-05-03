@@ -17,10 +17,6 @@ class Evolution:
 			self.population.append(Agent())
 
 
-	# do your stuff on the population
-	#use agent.fitness value to do your suff
-	# Main training function. Goes through every step of evolution process.
-    # Called every time after population evaluation by interacting with the environment.
 	def nextGeneration(self,):
 		# sort the population by fitness
 		self.population.sort(key = lambda x: x.fitness, reverse = True)
