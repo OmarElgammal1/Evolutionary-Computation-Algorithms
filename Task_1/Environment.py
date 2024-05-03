@@ -1,6 +1,6 @@
 import random, time, pygame, sys
 from pygame.locals import *
-from Agent import Agent
+from Agent import Agent, N_GENES
 #region CONSTANTS
 ##############################################################################
 # SETTING UP GENERAL CONSTANTS
@@ -654,7 +654,7 @@ class Environment:
             for r in range(len(PIECES[self.falling_piece['shape']])):
                 result = self.calc_move_info(self.board, dict(self.falling_piece),x, r, total_holes_bef, total_blocking_bloks_bef)
                 if result[0]:
-                    rating = self.agent.evaluateOption(result[1:5])
+                    rating = self.agent.evaluateOption(result[1:N_GENES+1])
                     if best_rating <= rating:
                         best_rating = rating
                         best_move['x'] = x;
