@@ -7,7 +7,7 @@ from Agent import Agent, N_GENES
 ##############################################################################
 
 # Board config
-FPS          = 120
+FPS          = 500
 WINDOWWIDTH  = 650
 WINDOWHEIGHT = 690
 BOXSIZE      = 25
@@ -818,6 +818,7 @@ class GameEngine:
         self.env_panel = pygame.Surface((WINDOWWIDTH - side_panel_width, WINDOWHEIGHT))
         self.environments = [Environment(self.env_width, self.env_height) for _ in range(n_envs)]
         self.can_continue = [True for _ in range(n_envs)]
+        self.side_panel_data = {}
     def reset_envs(self):
         for idx, env in enumerate(self.environments):
             env.reset()
