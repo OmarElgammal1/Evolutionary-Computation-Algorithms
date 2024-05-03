@@ -25,7 +25,8 @@ class Agent():
     # GENERATES 7 OTHER AGENTS WITH MUTATED VALUES TO ITSELF AND RETURNS THEM
     def mutate(self):
         for j in range(N_GENES):
-            self.chromosome[j] += random.uniform(-0.05, 0.05)
+            # self.chromosome[j] += random.uniform(-0.05, 0.05)
+            self.chromosome[j] *= random.uniform(0.99, 1.01)
 
     def getChromosome(self):
         return self.chromosome
