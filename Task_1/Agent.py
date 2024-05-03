@@ -23,20 +23,17 @@ class Agent():
         return value
 
     def crossover(self, other):
-        offspring = []
         parent1 = self.getChromosome()
         parent2 = other.getChromosome()
-        offspring = []
-        for g in range(N_GENES):
-            offspring.append((parent1[g] + parent2[g]) / 2)
-        return offspring
+        cutoff = random.randint(0, N_GENES - 1)
+        offspring = parent1[:cutoff] + parent2[cutoff:]
+        return Agent(offspring)
 
-
-    # GENERATES 7 OTHER AGENTS WITH MUTATED VALUES TO ITSELF AND RETURNS THEM
-    def mutate(self):
+    def mutate(self, mutationRate):
+        if random.random() >= mutationRate: return
         for j in range(N_GENES):
-            # self.chromosome[j] += random.uniform(-0.05, 0.05)
-            self.chromosome[j] *= random.uniform(0.99, 1.01)
+            self.chromosome[j] += random.uniform(-0.05, 0.05)
+            # self.chromosome[j] *= random.uniform(0.99, 1.01)
 
     def getChromosome(self):
         return self.chromosome

@@ -20,13 +20,15 @@ class Evolution:
 	def nextGeneration(self,):
 		# sort the population by fitness
 		self.population.sort(key = lambda x: x.fitness, reverse = True)
+		for i in range(len(self.population)):
+			print(f"Agent {i}: {self.population[i].fitness}")
 		newPopulation = self.population[:2]
+		agent1, agent2 = self.population[0], self.population[1]
 		# create the rest of the population
 		for i in range(self.populationSize - 2):
-			agent1, agent2 = random.choices(self.population, k = 2)
-			newChromosome = agent1.crossover(agent2)
+			# agent1, agent2 = random.choices(self.population, k = 2)
 			# mutation
-			newAgent = Agent(newChromosome)
+			newAgent = agent1.crossover(agent2)
 			newAgent.mutate(self.mutationRate)
 			newPopulation.append(newAgent)
 		# set the new population
