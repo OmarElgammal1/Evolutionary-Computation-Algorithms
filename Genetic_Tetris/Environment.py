@@ -565,7 +565,7 @@ class Environment:
         # Draw the border around the board
         pygame.draw.rect(self.root, BORDERCOLOR, (self.XMARGIN - 3, self.TOPMARGIN - 7, (BOARDWIDTH * self.box_size) + 8, (BOARDHEIGHT * self.box_size) + 8), 5)
         
-        # pygame.draw.rect(self.root, 'red', pygame.Rect(0, 0, self.width, self.height), 2)
+        pygame.draw.rect(self.root, (11,11,11), pygame.Rect(0, 0, self.width, self.height), 2)
         # pygame.draw.rect(self.root, 'red', (0, 0, self.width, self.height), 2)
         
         # Fill the background of the board
