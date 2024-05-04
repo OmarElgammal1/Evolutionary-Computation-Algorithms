@@ -810,7 +810,6 @@ class GameEngine:
         self.sidepanel_font     = pygame.font.Font('freesansbold.ttf', 16)
         self.cols = max_cols
         self.rows = n_envs // max_cols + (n_envs % max_cols > 0)
-        self.STARTED = 0
         pygame.display.set_caption('Tetris AI')
         self.env_width = (WINDOWWIDTH - side_panel_width) // self.cols
         self.env_height = WINDOWHEIGHT // self.rows
@@ -827,10 +826,6 @@ class GameEngine:
         for idx, env in enumerate(self.environments):
             env.reset()
             self.can_continue[idx] = True
-        if self.STARTED != 0: 
-            pygame.time.delay(1500)
-        else:
-            self.STARTED = 1
 
     def assign_next_pieces(self, n_pieces):
         self.environments[0].next_pieces = []
@@ -838,23 +833,16 @@ class GameEngine:
         for env in self.environments:
             env.next_pieces = pieces
             env.next_piece_index = 0
-        
-    def check_quit(self):
-        for event in pygame.event.get(QUIT): # get all the QUIT events
-            self.terminate() # terminate if any QUIT events are present
-        for event in pygame.event.get(KEYUP): # get all the KEYUP events
-            if event.key == K_ESCAPE:
-                self.terminate() # terminate if the KEYUP event was for the Esc key
-            pygame.event.post(event) # put the other KEYUP event objects back
 
     def propagate_events(self):
-        for event in pygame.event.get([KEYUP, KEYDOWN]):
+        for event in pygame.event.get([KEYUP, KEYDOWN, QUIT]):
+            if event.type == QUIT or event.key == K_ESCAPE:
+                self.terminate()
+                return
             for env in self.environments:
                 env.event_queue.append(event)
 
     def terminate(self):
-        """Terminate the game"""
-        # print("EXITING")
         pygame.quit()
         sys.exit()
 
@@ -875,12 +863,14 @@ class GameEngine:
         self.DISPLAYSURF.blit(self.side_panel_surf, (WINDOWWIDTH - self.side_panel_width, 0))
 
     def run_envs(self, max_turns, has_same_pieces=True):
+        # Assign each env the same set of pieces
+
         if has_same_pieces:
             self.assign_next_pieces(max_turns)
+        
         while True:
             self.env_panel.fill((0, 0, 0))  # Clear the main display surface
-            found = False
-            self.check_quit()
+            found = False                   # found env that is still running
             self.propagate_events()
             for idx, env in enumerate(self.environments):
                 if self.can_continue[idx]:
@@ -888,6 +878,7 @@ class GameEngine:
                     self.can_continue[idx] = env.step()  # Perform environment step
                     if env.turns > max_turns:
                         self.can_continue[idx] = False;
+                
                 row = idx // self.cols
                 col = idx % self.cols
                 self.env_panel.blit(env.root, (col * self.env_width, row * self.env_height))  # Blit environment surface onto main surface
@@ -896,4 +887,5 @@ class GameEngine:
             pygame.display.update()
             FPSCLOCK.tick(FPS)
             if not found:
+                pygame.time.delay(1500)
                 break
