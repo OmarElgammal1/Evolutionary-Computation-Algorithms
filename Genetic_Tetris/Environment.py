@@ -182,11 +182,11 @@ class Environment:
     def __init__(self, width = WINDOWWIDTH, height = WINDOWHEIGHT) -> None:
         self.width = width
         self.height = height
-        print(f"width: {self.width} and height: {self.height}")
+        # print(f"width: {self.width} and height: {self.height}")
         self.root = pygame.Surface((width, height))
         # self.box_size = self.width // 26
         self.box_size = 5
-        print(f"Box Size: {self.box_size}")
+        # print(f"Box Size: {self.box_size}")
         # self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2) // 4 + 15
         self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2) // 4
         # self.TOPMARGIN    = self.height - (BOARDHEIGHT * self.box_size) - 25
@@ -815,7 +815,7 @@ class GameEngine:
         self.side_panel_data = {}
 
     def reset_envs(self):
-        print("RESETTING")
+        # print("RESETTING")
         for idx, env in enumerate(self.environments):
             env.reset()
             self.can_continue[idx] = True
@@ -839,7 +839,7 @@ class GameEngine:
 
     def terminate(self):
         """Terminate the game"""
-        print("EXITING")
+        # print("EXITING")
         pygame.quit()
         sys.exit()
 
