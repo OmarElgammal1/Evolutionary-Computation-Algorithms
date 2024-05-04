@@ -2,22 +2,17 @@ import numpy as np
 import random
 
 class TSPGraph:
-    def __init__(self, n_cities, alpha = 1, beta = 1) -> None:
-        self.graph = self.generate_random_graph(n_cities)
+    # TODO: make generate adjacency matrix functional
+    def __init__(self, adj_matrix, n_cities, alpha = 1, beta = 1):
+        self.adj_matrix = np.array(adj_matrix)
         self.n_cities = n_cities
         self.alpha = alpha
         self.beta = beta
 
-    def generate_random_graph(self, n_cities) -> np.ndarray:
-        # making a matrix where each edge has [cost, pheromone_intensity]
-        tuples = np.array([(np.random.randint(3, 51), 1)
-                          for i in range(n_cities ** 2)])
-        graph = tuples.reshape(n_cities, n_cities, 2)
-
-        # setting diagonal to zeros
-        indices = np.diag_indices(n_cities)
-        graph[indices] = [0, 0]
-        return graph
+    def __copy__(self):
+        return TSPGraph(self.adj_matrix.copy(), self.n_cities, self.alpha, self.beta)
+    def copy(self):
+        return TSPGraph(self.adj_matrix.copy(), self.n_cities, self.alpha, self.beta)
 
     def traverse(self, source_index=0):
         visited = np.zeros(self.n_cities)
@@ -32,23 +27,24 @@ class TSPGraph:
             # list of adjacent nodes
             adj_nodes = [i for i in range(self.n_cities) if not visited[i]]
             # pheromone intensities of adjacent nodes
-            pheromone_intensities = self.graph[source_index, :, 1]
+            pheromone_intensities = self.adj_matrix[source_index, :, 1]
             # costs of adjacent nodes
-            costs = self.graph[source_index, :, 0]
+            costs = self.adj_matrix[source_index, :, 0]
             # calculating weights of adjacent nodes
             weights = (pheromone_intensities ** self.alpha) / ((costs + epsilon) ** self.beta)
             # removing visited nodes
             weights = np.delete(weights, np.argwhere(visited == 1).flatten())
             # selecting next node
             next_node = random.choices(adj_nodes, weights)[0]
-            total_cost += self.graph[source_index][next_node][0]
+            total_cost += self.adj_matrix[source_index][next_node][0]
             visited[next_node] = 1
             source_index = next_node
             cycle.append(source_index)
 
+        total_cost += self.adj_matrix[cycle[-1]][cycle[0]][0] # returning to source
         return cycle, total_cost
 
-graph = TSPGraph(10)
-print(graph.graph)
-print(graph.traverse())
+# graph = TSPGraph(4)
+# print(graph.adj_matrix)
+# print(graph.traverse())
 
