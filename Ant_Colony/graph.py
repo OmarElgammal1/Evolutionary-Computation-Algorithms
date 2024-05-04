@@ -19,9 +19,7 @@ class TSPGraph:
         graph[indices] = [0, 0]
         return graph
 
-    def traverse(self):
-        # Randomly selecting a source node
-        source_index = np.random.randint(0, self.n_cities)
+    def traverse(self, source_index=0):
         visited = np.zeros(self.n_cities)
         visited[source_index] = 1
         # Hamiltonian cycle
