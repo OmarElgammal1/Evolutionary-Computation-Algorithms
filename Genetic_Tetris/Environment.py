@@ -179,7 +179,7 @@ MANUAL_GAME = False
 # Setting the random seed
 
 class Environment:
-    def __init__(self, width = WINDOWWIDTH, height = WINDOWHEIGHT) -> None:
+    def __init__(self, width = WINDOWWIDTH, height = WINDOWHEIGHT, next_pieces=[]) -> None:
         self.width = width
         self.height = height
         # print(f"width: {self.width} and height: {self.height}")
@@ -202,8 +202,12 @@ class Environment:
         self.moving_right       = False
         self.score              = 0
         self.level, self.fall_freq   = self.calc_level_and_fall_freq(self.score)
+
+        self.next_piece_index = 0
+        self.next_pieces = next_pieces
         self.falling_piece      = self.get_new_piece()
         self.next_piece         = self.get_new_piece()
+
         self.turns = 0
         self.flag = False
         # print(self.height - (BOARDHEIGHT * self.box_size) - 50)
@@ -219,6 +223,8 @@ class Environment:
         self.moving_right       = False
         self.score              = 0
         self.level, self.fall_freq   = self.calc_level_and_fall_freq(self.score)
+        self.next_piece_index = 0
+        self.next_pieces = []
         self.falling_piece      = self.get_new_piece()
         self.next_piece         = self.get_new_piece()
         self.agent : Agent= None
@@ -442,7 +448,9 @@ class Environment:
 
     def get_new_piece(self, ):
         """Return a random new piece in a random rotation and color"""
-
+        if self.next_piece_index < len(self.next_pieces):
+            self.next_piece_index += 1
+            return dict(self.next_pieces[self.next_piece_index-1])
         shape     = random.choice(list(PIECES.keys()))
         new_piece = {'shape': shape,
                     'rotation': random.randint(0, len(PIECES[shape]) - 1),
@@ -824,6 +832,13 @@ class GameEngine:
         else:
             self.STARTED = 1
 
+    def assign_next_pieces(self, n_pieces):
+        self.environments[0].next_pieces = []
+        pieces = [ self.environments[0].get_new_piece() for i in range(n_pieces)]
+        for env in self.environments:
+            env.next_pieces = pieces
+            env.next_piece_index = 0
+        
     def check_quit(self):
         for event in pygame.event.get(QUIT): # get all the QUIT events
             self.terminate() # terminate if any QUIT events are present
@@ -859,7 +874,9 @@ class GameEngine:
         # Blit the side panel onto the main display surface
         self.DISPLAYSURF.blit(self.side_panel_surf, (WINDOWWIDTH - self.side_panel_width, 0))
 
-    def run_envs(self, maxTurns):
+    def run_envs(self, max_turns, has_same_pieces=True):
+        if has_same_pieces:
+            self.assign_next_pieces(max_turns)
         while True:
             self.env_panel.fill((0, 0, 0))  # Clear the main display surface
             found = False
@@ -869,7 +886,7 @@ class GameEngine:
                 if self.can_continue[idx]:
                     found = True
                     self.can_continue[idx] = env.step()  # Perform environment step
-                    if env.turns > maxTurns:
+                    if env.turns > max_turns:
                         self.can_continue[idx] = False;
                 row = idx // self.cols
                 col = idx % self.cols
