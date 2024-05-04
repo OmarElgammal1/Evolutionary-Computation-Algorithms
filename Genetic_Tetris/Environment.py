@@ -1,6 +1,8 @@
 import random, time, pygame, sys
 from pygame.locals import *
 from Agent import Agent, N_GENES
+import pygame
+from time import sleep
 #region CONSTANTS
 ##############################################################################
 # SETTING UP GENERAL CONSTANTS
@@ -8,8 +10,9 @@ from Agent import Agent, N_GENES
 
 # Board config
 FPS          = 500
-WINDOWWIDTH  = 650
-WINDOWHEIGHT = 690
+# WINDOWWIDTH  = 650 # 500
+WINDOWWIDTH  = 790
+WINDOWHEIGHT = 800
 BOXSIZE      = 25
 BOARDWIDTH   = 10
 BOARDHEIGHT  = 25
@@ -175,16 +178,19 @@ MANUAL_GAME = False
 
 # Setting the random seed
 
-
-
 class Environment:
     def __init__(self, width = WINDOWWIDTH, height = WINDOWHEIGHT) -> None:
         self.width = width
         self.height = height
+        print(f"width: {self.width} and height: {self.height}")
         self.root = pygame.Surface((width, height))
-        self.box_size = self.width // 26
+        # self.box_size = self.width // 26
+        self.box_size = 5
+        print(f"Box Size: {self.box_size}")
+        # self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2) // 4 + 15
         self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2) // 4
-        self.TOPMARGIN    = self.height - (BOARDHEIGHT * self.box_size) - 5
+        # self.TOPMARGIN    = self.height - (BOARDHEIGHT * self.box_size) - 25
+        self.TOPMARGIN    = self.height - (BOARDHEIGHT * self.box_size) - 25
 
         self.event_queue = []
         self.board              = self.get_blank_board()
@@ -200,6 +206,8 @@ class Environment:
         self.next_piece         = self.get_new_piece()
         self.turns = 0
         self.flag = False
+        # print(self.height - (BOARDHEIGHT * self.box_size) - 50)
+        
     def reset(self):
         self.event_queue  = []
         self.board              = self.get_blank_board()
@@ -216,6 +224,7 @@ class Environment:
         self.agent : Agent= None
         self.turns = 0
         self.flag = False
+
     def step(self):
         # Setup variables
         # Game Loop
@@ -373,7 +382,6 @@ class Environment:
 
         return True
 
-
     ##############################################################################
     # GAME FUNCTIONS
     ##############################################################################
@@ -383,8 +391,6 @@ class Environment:
 
         return surf, surf.get_rect()
 
-
-
     def check_key_press(self):
         # Go through event queue looking for a KEYUP event.
 
@@ -393,7 +399,6 @@ class Environment:
                 continue
             return event.key
         return None
-
 
     def show_text_screen(self, text):
         # This function displays large text in the
@@ -418,9 +423,6 @@ class Environment:
             pygame.display.update()
             FPSCLOCK.tick()
 
-
-
-
     def calc_level_and_fall_freq(self, score):
         """ Calculate level and fall frequency
             Based on the score, return the level the player is on and
@@ -438,7 +440,6 @@ class Environment:
 
         return level, fall_freq
 
-
     def get_new_piece(self, ):
         """Return a random new piece in a random rotation and color"""
 
@@ -451,7 +452,6 @@ class Environment:
 
         return new_piece
 
-
     def add_to_board(self, board, piece):
         """Fill in the board based on piece's location, shape, and rotation"""
 
@@ -459,7 +459,6 @@ class Environment:
             for y in range(TEMPLATEHEIGHT):
                 if PIECES[piece['shape']][piece['rotation']][y][x] != BLANK:
                     board[x + piece['x']][y + piece['y']] = piece['color']
-
 
     def get_blank_board(self, ):
         """Create and return a new blank board data structure"""
@@ -470,12 +469,10 @@ class Environment:
 
         return board
 
-
     def is_on_board(self, x, y):
         """Check if the piece is on the board"""
 
         return x >= 0 and x < BOARDWIDTH and y < BOARDHEIGHT
-
 
     def is_valid_position(self, board, piece, adj_X=0, adj_Y=0):
         """Return True if the piece is within the board and not colliding"""
@@ -495,7 +492,6 @@ class Environment:
 
         return True
 
-
     def is_complete_line(self, board, y):
         """Return True if the line filled with boxes with no gaps"""
 
@@ -504,7 +500,6 @@ class Environment:
                 return False
 
         return True
-
 
     def remove_complete_lines(self, board):
         """Remove any completed lines on the board.
@@ -537,7 +532,6 @@ class Environment:
 
         return num_removed_lines
 
-
     def conv_to_pixels_coords(self, boxx, boxy):
         """Convert the given xy coordinates to the screen coordinates
 
@@ -565,13 +559,15 @@ class Environment:
         pygame.draw.rect(self.root, COLORS[color], (pixelx + 1, pixely + 1, self.box_size - 1, self.box_size - 1))
         pygame.draw.rect(self.root, LIGHTCOLORS[color], (pixelx + 1, pixely + 1, self.box_size - 4, self.box_size - 4))
 
-
     def draw_board(self, board):
         """Draw board"""
 
         # Draw the border around the board
         pygame.draw.rect(self.root, BORDERCOLOR, (self.XMARGIN - 3, self.TOPMARGIN - 7, (BOARDWIDTH * self.box_size) + 8, (BOARDHEIGHT * self.box_size) + 8), 5)
-
+        
+        # pygame.draw.rect(self.root, 'red', pygame.Rect(0, 0, self.width, self.height), 2)
+        # pygame.draw.rect(self.root, 'red', (0, 0, self.width, self.height), 2)
+        
         # Fill the background of the board
         pygame.draw.rect(self.root, BGCOLOR, (self.XMARGIN, self.TOPMARGIN, self.box_size * BOARDWIDTH, self.box_size * BOARDHEIGHT))
 
@@ -580,25 +576,25 @@ class Environment:
             for y in range(BOARDHEIGHT):
                 self.draw_box(x, y, board[x][y])
 
-
     def draw_status(self, score, level):
         """Draw status"""
 
         # Draw the score text
         score_surf = BASICFONT.render('Score: %s' % score, True, TEXTCOLOR)
         score_rect = score_surf.get_rect()
-        # score_rect.topleft = (self.width - int(3/13 * self.width), int(8/690 * self.height))
-        score_rect.topleft = (self.XMARGIN + self.box_size * (BOARDWIDTH + 1), int(8/690 * self.height))
+        # score_rect.topleft = (self.width - int(5/13 * self.width), int(8/690 * self.height))
+        # score_rect.topleft = (self.XMARGIN + self.box_size * (BOARDWIDTH + 1), int(8/690 * self.height))
+        score_rect.topleft = (self.width - int(7/13 * self.width), int(400/690 * self.height))
 
         self.root.blit(score_surf, score_rect)
 
         # draw the level text
         levelSurf = BASICFONT.render('Turn: %s' % self.turns, True, TEXTCOLOR)
         levelRect = levelSurf.get_rect()
-        levelRect.topleft = (self.width - int(3/13 * self.width), int(110/690*self.height))
-        levelRect.topleft = (self.XMARGIN + self.box_size * (BOARDWIDTH + 1), int(110/690*self.height))
+        # levelRect.topleft = (self.width - int(3/13 * self.width), int(110/690*self.height))
+        # levelRect.topleft = (self.XMARGIN + self.box_size * (BOARDWIDTH + 1), int(110/690*self.height))
+        levelRect.topleft = (self.width - int(7/13 * self.width), int((400+(110-8))/690*self.height))
         self.root.blit(levelSurf, levelRect)
-
 
     def draw_piece(self, piece, pixelx=None, pixely=None):
         """Draw piece"""
@@ -615,7 +611,6 @@ class Environment:
             for y in range(TEMPLATEHEIGHT):
                 if shape_to_draw[y][x] != BLANK:
                     self.draw_box(None, None, piece['color'], pixelx + (x * self.box_size), pixely + (y * self.box_size))
-
 
     def draw_next_piece(self, piece):
         """Draw next piece"""
@@ -795,7 +790,6 @@ class Environment:
 
 #endregion
 
-
 class GameEngine:
     def __init__(self, n_envs = 3, max_cols = 3, side_panel_width=200) -> None:
         global FPSCLOCK, BASICFONT, BIGFONT
@@ -808,7 +802,7 @@ class GameEngine:
         self.sidepanel_font     = pygame.font.Font('freesansbold.ttf', 16)
         self.cols = max_cols
         self.rows = n_envs // max_cols + (n_envs % max_cols > 0)
-
+        self.STARTED = 0
         pygame.display.set_caption('Tetris AI')
         self.env_width = (WINDOWWIDTH - side_panel_width) // self.cols
         self.env_height = WINDOWHEIGHT // self.rows
@@ -819,10 +813,16 @@ class GameEngine:
         self.environments = [Environment(self.env_width, self.env_height) for _ in range(n_envs)]
         self.can_continue = [True for _ in range(n_envs)]
         self.side_panel_data = {}
+
     def reset_envs(self):
+        print("RESETTING")
         for idx, env in enumerate(self.environments):
             env.reset()
             self.can_continue[idx] = True
+        if self.STARTED != 0: 
+            pygame.time.delay(1500)
+        else:
+            self.STARTED = 1
 
     def check_quit(self):
         for event in pygame.event.get(QUIT): # get all the QUIT events
@@ -836,8 +836,10 @@ class GameEngine:
         for event in pygame.event.get([KEYUP, KEYDOWN]):
             for env in self.environments:
                 env.event_queue.append(event)
+
     def terminate(self):
         """Terminate the game"""
+        print("EXITING")
         pygame.quit()
         sys.exit()
 

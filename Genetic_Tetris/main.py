@@ -8,5 +8,5 @@ def main():
 	population_size = 16
 	engine = GameEngine(population_size, max_cols=4, side_panel_width=150)
 	evol = Evolution(engine, population_size, 0.01)
-	evol.evolve(10, 500)
+	evol.evolve(10, 100)
 main()
