@@ -212,7 +212,7 @@ class Environment:
         self.flag = False
         # print(self.height - (BOARDHEIGHT * self.box_size) - 50)
         
-    def reset(self):
+    def reset(self, new_pieces=[], agent: Agent = None):
         self.event_queue  = []
         self.board              = self.get_blank_board()
         self.last_movedown_time = time.time()
@@ -224,10 +224,10 @@ class Environment:
         self.score              = 0
         self.level, self.fall_freq   = self.calc_level_and_fall_freq(self.score)
         self.next_piece_index = 0
-        self.next_pieces = []
+        self.next_pieces = new_pieces
         self.falling_piece      = self.get_new_piece()
         self.next_piece         = self.get_new_piece()
-        self.agent : Agent= None
+        self.agent = agent
         self.turns = 0
         self.flag = False
 
@@ -821,19 +821,23 @@ class GameEngine:
         self.can_continue = [True for _ in range(n_envs)]
         self.side_panel_data = {}
 
-    def reset_envs(self):
-        # print("RESETTING")
+    def reset_envs(self, new_pieces = [], agents : list[Agent] = []):
         for idx, env in enumerate(self.environments):
-            env.reset()
+            env.reset(new_pieces, agents[idx] if idx < len(agents) else None)
             self.can_continue[idx] = True
 
-    def assign_next_pieces(self, n_pieces):
-        self.environments[0].next_pieces = []
-        pieces = [ self.environments[0].get_new_piece() for i in range(n_pieces)]
-        for env in self.environments:
-            env.next_pieces = pieces
-            env.next_piece_index = 0
-
+    def get_new_pieces(self, n_pieces):
+        pieces = []
+        for i in range(n_pieces):
+            shape     = random.choice(list(PIECES.keys()))
+            new_piece = {'shape': shape,
+                        'rotation': random.randint(0, len(PIECES[shape]) - 1),
+                        'x': int(BOARDWIDTH / 2) - int(TEMPLATEWIDTH / 2),
+                        'y': -2, # start it above the board (i.e. less than 0)
+                        'color': random.randint(0, len(COLORS)-1)}
+            pieces.append(new_piece)
+        return pieces
+    
     def propagate_events(self):
         for event in pygame.event.get([KEYUP, KEYDOWN, QUIT]):
             if event.type == QUIT or event.key == K_ESCAPE:
@@ -862,12 +866,14 @@ class GameEngine:
         # Blit the side panel onto the main display surface
         self.DISPLAYSURF.blit(self.side_panel_surf, (WINDOWWIDTH - self.side_panel_width, 0))
 
-    def run_envs(self, max_turns, has_same_pieces=True):
+    def run_envs(self, max_turns, agents: list[Agent] = [], has_same_pieces=True):
         # Assign each env the same set of pieces
 
         if has_same_pieces:
-            self.assign_next_pieces(max_turns)
-        
+            self.reset_envs(self.get_new_pieces(max_turns), agents)
+        else:
+            self.reset_envs([], agents)
+
         while True:
             self.env_panel.fill((0, 0, 0))  # Clear the main display surface
             found = False                   # found env that is still running
