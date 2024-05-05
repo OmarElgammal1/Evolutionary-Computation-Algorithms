@@ -2,15 +2,12 @@ import numpy as np
 import random
 
 class TSPGraph:
-    # TODO: make generate adjacency matrix functional
-    def __init__(self, adj_matrix, n_cities, alpha = 1, beta = 1):
+    def __init__(self, adj_matrix, n_cities, alpha = 1, beta = 1) -> None:
         self.adj_matrix = np.array(adj_matrix)
         self.n_cities = n_cities
         self.alpha = alpha
         self.beta = beta
 
-    def __copy__(self):
-        return TSPGraph(self.adj_matrix.copy(), self.n_cities, self.alpha, self.beta)
     def copy(self):
         return TSPGraph(self.adj_matrix.copy(), self.n_cities, self.alpha, self.beta)
 
