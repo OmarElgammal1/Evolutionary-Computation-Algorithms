@@ -207,6 +207,7 @@ class Environment:
         self.next_pieces = next_pieces
         self.falling_piece      = self.get_new_piece()
         self.next_piece         = self.get_new_piece()
+        self.total_removed_lines = 0
 
         self.turns = 0
         self.flag = False
@@ -231,6 +232,7 @@ class Environment:
         self.turns = 0
         self.flag = False
 
+        self.total_removed_lines = 0
     def step(self):
         # Setup variables
         # Game Loop
@@ -357,7 +359,7 @@ class Environment:
                     self.score += 300
                 elif (num_removed_lines == 4):
                     self.score += 1200
-
+                self.total_removed_lines += num_removed_lines
                 self.level, self.fall_freq = self.calc_level_and_fall_freq(self.score)
                 self.falling_piece    = None
 

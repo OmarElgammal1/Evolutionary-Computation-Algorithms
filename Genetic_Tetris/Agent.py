@@ -8,7 +8,6 @@ class Agent():
                 self.chromosome.append(random.uniform(-1, 1))
         else:
             self.chromosome = chromosome
-        self.normalizeChromosome()
     def evaluateOptions(self, options):
         bestIndex = 0
         for i in range(len(options)):
@@ -30,11 +29,9 @@ class Agent():
         return Agent(offspring)
 
     def mutate(self, mutationRate):
-        if random.random() >= mutationRate: return
         for i in range(N_GENES):
-            self.chromosome[random.choice(range(N_GENES))] += random.uniform(-0.1, 0.1)
-            # self.chromosome[j] *= random.uniform(0.99, 1.01)
-        self.normalizeChromosome()
+            if random.random() <= mutationRate:
+                self.chromosome[i] = random.uniform(-1, 1)
     def getChromosome(self):
         return self.chromosome
 
