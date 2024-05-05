@@ -4,16 +4,21 @@ from Evolution import Evolution
 from Environment import Environment, GameEngine
 from Agent import Agent
 
-random.seed(42)
+random.seed(12)
+
 def main():
-	engine = GameEngine(3, max_cols=3, side_panel_width=150)
+	engine = GameEngine(4, max_cols=3, side_panel_width=150)
 
 	#load the latest generation's best agent
 	with open("generations.json") as f:
 		gens = json.load(f)
 	
-	engine.environments[0].agent = Agent(gens[-1][0]['chromosome'])
-
-	engine.run_envs(1000, False)
+	agent1 = Agent(gens[-1][0]['chromosome'])
+	agent2 = Agent(gens[-2][0]['chromosome'])
+	agent3 = Agent(gens[-3][0]['chromosome'])
+	print(f"agent1: {agent1.getChromosome()}")
+	print(f"agent2: {agent2.getChromosome()}")
+	print(f"agent3: {agent3.getChromosome()}")
+	engine.run_envs(1000, [agent2, agent1, agent3])
 	print(engine.environments[0].turns)
 main()

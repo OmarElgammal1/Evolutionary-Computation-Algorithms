@@ -20,12 +20,10 @@ class Evolution:
 	def nextGeneration(self,):
 		# sort the population by fitness
 		self.population.sort(key = lambda x: x.fitness, reverse = True)
-		for i in range(len(self.population)):
-			print(f"Agent {i}: {self.population[i].fitness}")
-		newPopulation = self.population[:2]
+		newPopulation = []
 		agent1, agent2 = self.population[0], self.population[1]
 		# create the rest of the population
-		for i in range(self.populationSize - 2):
+		for i in range(self.populationSize):
 			# agent1, agent2 = random.choices(self.population, k = 2)
 			# mutation
 			newAgent = agent1.crossover(agent2)
@@ -38,6 +36,8 @@ class Evolution:
 	def evolve(self, numGenerations, maxTurns):
 		
 		for currGen in range(numGenerations):
+			for idx, agent in enumerate(self.population):
+				print(f"agent {idx} : {agent.chromosome}")
 			self.engine.side_panel_data = {'gen':f"{currGen}/{numGenerations}", 'mxTurns':maxTurns}
 			self.engine.run_envs(maxTurns, self.population, True)
 
