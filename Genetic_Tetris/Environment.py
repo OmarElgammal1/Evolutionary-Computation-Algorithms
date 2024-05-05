@@ -262,18 +262,7 @@ class Environment:
         for event in self.event_queue:
             # Event handling loop
             if (event.type == KEYUP):
-                if (event.key == K_p):
-                    # PAUSE the game
-                    self.root.fill(BGCOLOR)
-                    # Pause until a key press
-                    self.show_text_screen('Paused')
-
-                    # Update times
-                    self.last_fall_time     = time.time()
-                    self.last_movedown_time = time.time()
-                    self.last_moveside_time = time.time()
-
-                elif (event.key == K_LEFT or event.key == K_a):
+                if (event.key == K_LEFT or event.key == K_a):
                     self.moving_left = False
                 elif (event.key == K_RIGHT or event.key == K_d):
                     self.moving_right = False
@@ -821,6 +810,7 @@ class GameEngine:
         self.can_continue = [True for _ in range(n_envs)]
         self.side_panel_data = {}
 
+        self.paused = False
     def reset_envs(self, new_pieces = [], agents : list[Agent] = []):
         for idx, env in enumerate(self.environments):
             env.reset(new_pieces, agents[idx] if idx < len(agents) else None)
@@ -843,6 +833,8 @@ class GameEngine:
             if event.type == QUIT or event.key == K_ESCAPE:
                 self.terminate()
                 return
+            if (event.type == KEYUP and event.key == K_p):
+                self.paused = not self.paused
             for env in self.environments:
                 env.event_queue.append(event)
 
@@ -878,6 +870,8 @@ class GameEngine:
             self.env_panel.fill((0, 0, 0))  # Clear the main display surface
             found = False                   # found env that is still running
             self.propagate_events()
+            if self.paused:
+                continue
             for idx, env in enumerate(self.environments):
                 if self.can_continue[idx]:
                     found = True
