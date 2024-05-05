@@ -50,13 +50,15 @@ def adjacency_matrix_test2():
         ]], dtype=np.float32)
 
 
-def random_adjacency_mat(n_cities):
+def random_adjacency_mat(n_cities, seed):
     # making a matrix where each edge has [cost, pheromone_intensity]
-    tuples = np.array([(np.random.randint(3, 51), 1)
-                        for i in range(n_cities ** 2)])
-    graph = tuples.reshape(n_cities, n_cities, 2)
-
-    # setting diagonal to zeros
-    indices = np.diag_indices(n_cities)
-    graph[indices] = [0, 0]
+    np.random.seed(seed)
+    graph = np.zeros((n_cities, n_cities, 2))
+    for i in range(n_cities):
+        for j in range(i, n_cities):
+            if i == j:
+                continue
+            cost_pheromone = [np.random.randint(3, 51), 1]
+            graph[i, j] = cost_pheromone
+            graph[j, i] = cost_pheromone
     return graph
