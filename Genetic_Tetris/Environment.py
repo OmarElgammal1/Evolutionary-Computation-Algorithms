@@ -235,7 +235,7 @@ class Environment:
         # Setup variables
         # Game Loop
         if not self.flag:
-            if hasattr(self, "agent"):
+            if self.agent != None:
                 move = self.best_move();
                 self.do_move(move)
             self.flag = True
@@ -256,7 +256,7 @@ class Environment:
             #if the environment has an agent
             #eval all possible moves using the agent and choose the best
             #then add to event_queue the events to lead to that move
-            if hasattr(self, "agent"):
+            if self.agent != None:
                 move = self.best_move();
                 self.do_move(move)
         for event in self.event_queue:

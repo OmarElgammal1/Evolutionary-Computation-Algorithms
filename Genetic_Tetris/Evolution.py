@@ -38,12 +38,8 @@ class Evolution:
 	def evolve(self, numGenerations, maxTurns):
 		
 		for currGen in range(numGenerations):
-			self.engine.reset_envs()
-			# assign each agent an environment
-			for idx, agent in enumerate(self.population):
-				self.engine.environments[idx].agent = agent
 			self.engine.side_panel_data = {'gen':f"{currGen}/{numGenerations}", 'mxTurns':maxTurns}
-			self.engine.run_envs(maxTurns)
+			self.engine.run_envs(maxTurns, self.population, True)
 
 			for env in self.engine.environments:
 				env.agent.fitness = env.score
