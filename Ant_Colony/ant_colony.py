@@ -13,11 +13,11 @@ class AntColonyOptimization:
         best_cycle = None
         for _ in range(n_iters):
             ant_cycles = [graph_cpy.traverse(randint(0, self.n_cities - 1)) for _ in range(n_ants)]
-            if best_cycle:
+            if use_elitism and best_cycle:
                 ant_cycles.append((best_cycle, best_cost))
 
             ant_cycles.sort(key=lambda x: x[1])
-            if best_cycle and ant_cycles[0][1] < best_cycle[1]:
+            if use_elitism and best_cycle and ant_cycles[0][1] < best_cycle[1]:
                 best_cycle = ant_cycles[0]
                 
             for cycle, total_cost in ant_cycles:
@@ -55,12 +55,12 @@ class AntColonyOptimization:
 #                 for degradation_factor in degradation_factor_trials:
 #                     pass
 
-n_mistakes: int = 0
-aco = AntColonyOptimization(adjacency_mat_generator.adjacency_matrix_test1(), 4)
-for _ in range(50):
-    best_cycle = aco.optimize(n_iters=30, n_ants=50)
-    if best_cycle[1] != 55:
-        n_mistakes += 1
-    print(best_cycle)
+# n_mistakes: int = 0
+# aco = AntColonyOptimization(adjacency_mat_generator.adjacency_matrix_test1(), 4)
+# for _ in range(50):
+#     best_cycle = aco.optimize(n_iters=30, n_ants=50)
+#     if best_cycle[1] != 55:
+#         n_mistakes += 1
+#     print(best_cycle)
 
-print(f"the ants failed {n_mistakes} times")
+# print(f"the ants failed {n_mistakes} times")
