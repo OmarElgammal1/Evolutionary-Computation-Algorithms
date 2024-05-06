@@ -182,14 +182,17 @@ class Environment:
     def __init__(self, width = WINDOWWIDTH, height = WINDOWHEIGHT, next_pieces=[]) -> None:
         self.width = width
         self.height = height
-        # print(f"width: {self.width} and height: {self.height}")
+        print(f"width: {self.width} and height: {self.height}")
         self.root = pygame.Surface((width, height))
-        # self.box_size = self.width // 26
-        self.box_size = 5
-        # print(f"Box Size: {self.box_size}")
+        self.box_size = self.width // 26 + (self.height // 410)*(395 // self.width) * 7
+        # self.box_size = 5
+        print(f"Box Size: {self.box_size}")
         # self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2) // 4 + 15
-        self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2) // 4
-        self.TOPMARGIN    = self.height - (BOARDHEIGHT * self.box_size) - 25
+        self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2) // 4 + (self.box_size * 6)\
+            - (self.height // 410)*(395 // self.width) * 100
+        self.TOPMARGIN    = self.height - (BOARDHEIGHT * self.box_size) - (self.box_size * 6)\
+            + (self.height // 410) * 150 - (self.height // 410)*(395 // self.width) * 150
+            
 
         self.tetri = 0
         self.event_queue = []
@@ -570,7 +573,7 @@ class Environment:
         # pygame.draw.rect(self.root, 'red', (0, 0, self.width, self.height), 2)
         
         # Fill the background of the board
-        pygame.draw.rect(self.root, BGCOLOR, (self.XMARGIN, self.TOPMARGIN, self.box_size * BOARDWIDTH, self.box_size * BOARDHEIGHT))
+        pygame.draw.rect(self.root, BGCOLOR, (self.XMARGIN + 1, self.TOPMARGIN, self.box_size * BOARDWIDTH, self.box_size * BOARDHEIGHT))
 
         # Draw the individual boxes on the board
         for x in range(BOARDWIDTH):
@@ -581,20 +584,20 @@ class Environment:
         """Draw status"""
 
         # Draw the score text
-        score_surf = BASICFONT.render('Score: %s' % score, True, TEXTCOLOR)
+        score_surf = BASICFONT.render('Score: %s' % (score), True, TEXTCOLOR)
         score_rect = score_surf.get_rect()
         # score_rect.topleft = (self.width - int(5/13 * self.width), int(8/690 * self.height))
-        # score_rect.topleft = (self.XMARGIN + self.box_size * (BOARDWIDTH + 1), int(8/690 * self.height))
-        score_rect.topleft = (self.width - int(7/13 * self.width), int(400/690 * self.height))
-
+        # score_rect.topleft = (self.width - int(7/13 * self.width), int(400/690 * self.height))
+        score_rect.topleft = (self.XMARGIN - (200//self.height)*42 + (self.height//410)*(1), (200//self.height)*(self.height - 30) + (self.height//410)*(self.height - 25))
         self.root.blit(score_surf, score_rect)
 
+
         # draw the level text
-        levelSurf = BASICFONT.render('Turn: %s' % self.turns, True, TEXTCOLOR)
+        levelSurf = BASICFONT.render('Turn: %s' % (self.turns), True, TEXTCOLOR)
         levelRect = levelSurf.get_rect()
         # levelRect.topleft = (self.width - int(3/13 * self.width), int(110/690*self.height))
-        # levelRect.topleft = (self.XMARGIN + self.box_size * (BOARDWIDTH + 1), int(110/690*self.height))
-        levelRect.topleft = (self.width - int(7/13 * self.width), int((400+(110-8))/690*self.height))
+        # levelRect.topleft = (self.width - int(7/13 * self.width), int((400+(110-8))/690*self.height))
+        levelRect.topright = (self.XMARGIN + (200//self.height)*(self.width - 50 - 3) + (self.height//410)*(300) , (200//self.height)*(self.height - 17) + (self.height//410)*(self.height - 25))
         self.root.blit(levelSurf, levelRect)
 
     def draw_piece(self, piece, pixelx=None, pixely=None):

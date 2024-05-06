@@ -40,11 +40,4 @@ class Agent():
     def setChromosome(self, chromosome):
         self.chromosome = chromosome
 
-    def normalizeChromosome(self):
-        mod = 0
-        for gene in self.chromosome:
-            mod += gene * gene
-        mod = math.sqrt(mod)
-        for i in range(len(self.chromosome)):
-            self.chromosome[i] /= mod
         
