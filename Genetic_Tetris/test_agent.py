@@ -4,7 +4,7 @@ from Evolution import Evolution
 from Environment import Environment, GameEngine
 from Agent import Agent
 
-random.seed(42)
+random.seed(32)
 
 def main():
 	engine = GameEngine(1, max_cols=1, side_panel_width=150)

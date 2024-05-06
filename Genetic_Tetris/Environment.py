@@ -727,12 +727,15 @@ class Environment:
         blocks_above_holes = 0
         is_hole_exist      = False
         sum_heights        = 0
+        max = 0
 
         for y in range(BOARDHEIGHT-1, -1,-1):
             if board[x][y] == BLANK:
                 locals_holes += 1
             else:
                 sum_heights += BOARDHEIGHT-y
+                if max < BOARDHEIGHT-y:
+                    max = BOARDHEIGHT-y
 
                 if locals_holes > 0:
                     total_holes += locals_holes
@@ -741,7 +744,7 @@ class Environment:
                 if total_holes > 0:
                     blocks_above_holes += 1
 
-        return total_holes, blocks_above_holes, sum_heights
+        return total_holes, blocks_above_holes, sum_heights, max
 
     def calc_sides_in_contact(self, board, piece):
         """Calculate sides in contacts"""

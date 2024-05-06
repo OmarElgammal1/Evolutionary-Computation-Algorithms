@@ -36,13 +36,14 @@ class Evolution:
 	def evolve(self, numGenerations, maxTurns):
 		
 		for currGen in range(numGenerations):
-			for idx, agent in enumerate(self.population):
-				print(f"agent {idx} : {agent.chromosome}")
+			# for idx, agent in enumerate(self.population):
+				# print(f"agent {idx} : {agent.chromosome}")
 			self.engine.side_panel_data = {'gen':f"{currGen}/{numGenerations}", 'mxTurns':maxTurns}
 			self.engine.run_envs(maxTurns, self.population, True)
 
 			for env in self.engine.environments:
-				env.agent.fitness = env.total_removed_lines + 1500 * env.tetri - 50 * env.calc_initial_move_info(env.board)[0]
+				env.agent.fitness = env.total_removed_lines + 1500 * env.tetri - 50 * env.calc_initial_move_info(env.board)[0] + env.turns
+
 			self.generation_logs.append(
 				sorted(
 					[{'chromosome': agent.chromosome, 'fitness': agent.fitness}
