@@ -9,7 +9,7 @@ from time import sleep
 ##############################################################################
 
 # Board config
-FPS          = 500
+FPS          = 1000
 # WINDOWWIDTH  = 650 # 500
 WINDOWWIDTH  = 790
 WINDOWHEIGHT = 800
@@ -189,9 +189,9 @@ class Environment:
         # print(f"Box Size: {self.box_size}")
         # self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2) // 4 + 15
         self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2) // 4
-        # self.TOPMARGIN    = self.height - (BOARDHEIGHT * self.box_size) - 25
         self.TOPMARGIN    = self.height - (BOARDHEIGHT * self.box_size) - 25
 
+        self.tetri = 0
         self.event_queue = []
         self.board              = self.get_blank_board()
         self.last_movedown_time = time.time()
@@ -233,6 +233,7 @@ class Environment:
         self.flag = False
 
         self.total_removed_lines = 0
+
     def step(self):
         # Setup variables
         # Game Loop
@@ -358,6 +359,7 @@ class Environment:
                 elif (num_removed_lines == 3):
                     self.score += 300
                 elif (num_removed_lines == 4):
+                    self.tetri += 1
                     self.score += 1200
                 self.total_removed_lines += num_removed_lines
                 self.level, self.fall_freq = self.calc_level_and_fall_freq(self.score)
