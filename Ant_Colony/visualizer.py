@@ -84,15 +84,15 @@ class AntColonyVisualizer(Scene):
         print(edge_phero)
 
         graph_lines = g.edges # (i, j): Line object -------> where i, j are vertices
-        edge_labels = []
+        edge_labels = [Tex().set_z_index(10) for _ in range(len(self.edges))]
         edge_animations = []
-        for i, edge in enumerate(self.edges):
+        for txt, edge in zip(edge_labels, self.edges):
             line = graph_lines[edge]
             line_direction = line.get_end() - line.get_start()
             offset = 1.0 * (line_direction / np.linalg.norm(line_direction))
             phero = str(round(edge_phero[edge], 2))
-            txt = Tex(phero, color='#00C8FF').set_z_index(10)
-            edge_animations.append(txt.animate.move_to(line.get_start() + offset))
+            # txt = 
+            edge_animations.append(txt.animate.become(Tex(phero, color='#00C8FF').set_z_index(10)).move_to(line.get_start() + offset))
             edge_labels.append(txt)
 
 
