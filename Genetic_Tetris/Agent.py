@@ -1,4 +1,4 @@
-import random, math
+import random
 N_GENES = 7
 class Agent():
     def __init__(self, chromosome = None):

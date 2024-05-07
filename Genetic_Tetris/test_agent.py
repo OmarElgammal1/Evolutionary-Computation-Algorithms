@@ -1,7 +1,6 @@
-import random, time, pygame, sys, json
+import random, json
 from pygame.locals import *
-from Evolution import Evolution
-from Environment import Environment, GameEngine
+from Environment import  GameEngine
 from Agent import Agent
 
 

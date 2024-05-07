@@ -1,7 +1,7 @@
-import random, time, pygame, sys
+import random
 from pygame.locals import *
 from Evolution import Evolution
-from Environment import Environment, GameEngine
+from Environment import GameEngine
 
 random.seed(42)
 def main():

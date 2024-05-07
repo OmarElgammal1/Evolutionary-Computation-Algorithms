@@ -1,7 +1,7 @@
-import random, json
+import json
 from pygame.locals import *
 from Agent import Agent
-from Environment import Environment, GameEngine
+from Environment import GameEngine
 class Evolution:
 	def __init__(self, gameEngine, populationSize, mutationRate) -> None:
 		self.engine : GameEngine = gameEngine
