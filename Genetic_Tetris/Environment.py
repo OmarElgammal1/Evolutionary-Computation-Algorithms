@@ -182,11 +182,11 @@ class Environment:
     def __init__(self, width = WINDOWWIDTH, height = WINDOWHEIGHT, next_pieces=[]) -> None:
         self.width = width
         self.height = height
-        print(f"width: {self.width} and height: {self.height}")
+        # print(f"width: {self.width} and height: {self.height}")
         self.root = pygame.Surface((width, height))
         self.box_size = self.width // 26 + (self.height // 410)*(395 // self.width) * 7
         # self.box_size = 5
-        print(f"Box Size: {self.box_size}")
+        # print(f"Box Size: {self.box_size}")s
         # self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2) // 4 + 15
         self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2) // 4 + (self.box_size * 6)\
             - (self.height // 410)*(395 // self.width) * 100
