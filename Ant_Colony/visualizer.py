@@ -171,31 +171,3 @@ class AntColonyVisualizer(Scene):
         if cycle_cost < best_cost:
             return cycle_cost, cycle
         return best_cost, best_cycle
-
-
-class DynamicGraphColoring(Scene):
-    def construct(self):
-        nodes = [i for i in range(5)]
-        edges = [(0, 1), (1, 2), (2, 3), (3, 0), (2, 4)]
-
-        graph = Graph(nodes, edges, layout="circular")
-        self.play(Create(graph))
-        self.play(FadeToColor(graph.edges[(0, 1)], color=BLUE))
-        # self.play(FadeOut(graph, scale=0.5))
-
-class LineT(Scene):
-    def construct(self):
-
-        my_line = Line(LEFT, RIGHT, color=BLUE, stroke_width=2)
-
-        # Animate color change to red with a duration of 2 seconds
-        self.play(my_line.animate.set_color(RED).set_stroke(width=5), run_time=2)
-
-        self.add(my_line)
-
-class Table1(Scene):
-    def construct(self):
-        row_labels = [Tex(str(i)) for i in range(10)]
-        col_labels = [Tex(str(i)) for i in range(10)]
-
-        table = MobjectTable([[row_labels, col_labels]])
