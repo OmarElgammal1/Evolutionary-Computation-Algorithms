@@ -46,7 +46,7 @@ YELLOW      = (155, 155,   0)
 LIGHTYELLOW = (175, 175,  20)
 
 BORDERCOLOR     = BLUE
-BGCOLOR         = RED
+BGCOLOR         = BLACK
 TEXTCOLOR       = WHITE
 TEXTSHADOWCOLOR = GRAY
 COLORS          = (     BLUE,      GREEN,      RED,      YELLOW)
@@ -179,14 +179,21 @@ MANUAL_GAME = False
 # Setting the random seed
 
 class Environment:
-    def __init__(self, next_pieces=[]) -> None:
-        self.width = 450
-        self.height = 690
+    BASIC_WIDTH = 450
+    BASIC_HEIGHT = 690
+
+    def __init__(self, width =450, height = 690, next_pieces=[]) -> None:
+
+        self.width = width
+        self.height = height
         self.root = pygame.Surface((self.width, self.height))
-        self.box_size = BOXSIZE
-        self.XMARGIN      = 50
-        # self.TOPMARGIN    = TOPMARGIN
-        self.TOPMARGIN = 40
+        self.box_size = int(BOXSIZE * (self.width / Environment.BASIC_WIDTH))
+        # self.box_size = BOXSIZE
+        self.XMARGIN      = int(10 * (self.width / Environment.BASIC_WIDTH))
+        # self.XMARGIN      = 10
+
+        # self.TOPMARGIN = 40
+        self.TOPMARGIN = int(40 * (self.height / Environment.BASIC_HEIGHT))
         self.event_queue = []
         self.board              = self.get_blank_board()
         self.last_movedown_time = time.time()
@@ -536,6 +543,12 @@ class Environment:
         return (self.XMARGIN + (boxx * self.box_size)), (self.TOPMARGIN + (boxy * self.box_size))
 
 #region DrawStuff
+    #relative number to the width
+    def rel(self,num, w_or_h = "w"):
+        if w_or_h == "w":
+            return int(num * (self.width / Environment.BASIC_WIDTH))
+        if w_or_h == "h":
+            return int(num * (self.height / Environment.BASIC_HEIGHT))
     def draw_box(self, boxx, boxy, color, pixelx=None, pixely=None):
         """Draw box
 
@@ -556,8 +569,12 @@ class Environment:
     def draw_board(self, board):
         """Draw board"""
 
-        # Draw the border around the board
-        pygame.draw.rect(self.root, BORDERCOLOR, (self.XMARGIN - 3, self.TOPMARGIN - 7, (BOARDWIDTH * self.box_size) + 8, (BOARDHEIGHT * self.box_size) + 8), 5)
+        # Draw the border around the board\
+        border_width = int(5 * (self.width / Environment.BASIC_WIDTH))
+
+
+        pygame.draw.rect(self.root, BORDERCOLOR, (self.XMARGIN - self.rel(2) + 1, self.TOPMARGIN - self.rel(6, "h") + 1, (BOARDWIDTH * self.box_size) + self.rel(7) + 1, (BOARDHEIGHT * self.box_size) + self.rel(7, 'h') + 1), border_width)
+
         
 
         # Fill the background of the board
@@ -575,7 +592,7 @@ class Environment:
         score_surf = BASICFONT.render('Score: %s' % score, True, TEXTCOLOR)
         score_rect = score_surf.get_rect()
         # score_rect.topleft = (self.width - 150, 80)
-        score_rect.topleft = (self.XMARGIN + self.box_size * (BOARDWIDTH + 1), 80)
+        score_rect.topleft = (self.XMARGIN + self.box_size * (BOARDWIDTH + 2), 80)
         # score_rect.topleft = (self.width - int(7/13 * self.width), int(400/690 * self.height))
 
         self.root.blit(score_surf, score_rect)
@@ -584,7 +601,7 @@ class Environment:
         levelSurf = BASICFONT.render('Turn: %s' % self.turns, True, TEXTCOLOR)
         levelRect = levelSurf.get_rect()
 
-        levelRect.topleft = (self.XMARGIN + self.box_size * (BOARDWIDTH + 1), 110)
+        levelRect.topleft = (self.XMARGIN + self.box_size * (BOARDWIDTH + 2), 110)
         self.root.blit(levelSurf, levelRect)
 
     def draw_piece(self, piece, pixelx=None, pixely=None):
@@ -788,10 +805,9 @@ class GameEngine:
 
         FPSCLOCK    = pygame.time.Clock()
         self.DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
-        BASICFONT   = pygame.font.Font('freesansbold.ttf', -(-18 // max_cols)  +  2 * max_cols)
-        BIGFONT     = pygame.font.Font('freesansbold.ttf', -(-100 // max_cols) +  2 * max_cols)
+        BIGFONT     = pygame.font.Font('freesansbold.ttf', 100)
         self.sidepanel_font     = pygame.font.Font('freesansbold.ttf', 16)
-        self.cols = max_cols
+        self.cols = max_cols if max_cols < n_envs else n_envs
         self.rows = n_envs // max_cols + (n_envs % max_cols > 0)
         pygame.display.set_caption('Tetris AI')
         self.env_width = (WINDOWWIDTH - side_panel_width) // self.cols
@@ -799,8 +815,10 @@ class GameEngine:
         self.side_panel_width = side_panel_width
         self.side_panel_surf = pygame.Surface((side_panel_width, WINDOWHEIGHT))
 
+        BASICFONT   = pygame.font.Font('freesansbold.ttf',int(34 * (self.env_width / Environment.BASIC_WIDTH)))
+
         self.env_panel = pygame.Surface((WINDOWWIDTH - side_panel_width, WINDOWHEIGHT))
-        self.environments = [Environment() for _ in range(n_envs)]
+        self.environments = [Environment(self.env_width, self.env_height) for _ in range(n_envs)]
         self.can_continue = [True for _ in range(n_envs)]
         self.side_panel_data = {}
 
@@ -852,9 +870,7 @@ class GameEngine:
         # Blit the side panel onto the main display surface
         self.DISPLAYSURF.blit(self.side_panel_surf, (WINDOWWIDTH - self.side_panel_width, 0))
 
-    def run_envs(self, max_turns, agents: list[Agent] = [], has_same_pieces=True):
-        # Assign each env the same set of pieces
-
+    def run_envs(self, max_turns, agents=[], has_same_pieces=True):
         if has_same_pieces:
             self.reset_envs(self.get_new_pieces(max_turns), agents)
         else:
@@ -866,20 +882,25 @@ class GameEngine:
             self.propagate_events()
             if self.paused:
                 continue
+
             for idx, env in enumerate(self.environments):
                 if self.can_continue[idx]:
                     found = True
                     self.can_continue[idx] = env.step()  # Perform environment step
                     if env.turns > max_turns:
                         self.can_continue[idx] = False;
-                
+
                 row = idx // self.cols
                 col = idx % self.cols
-                self.env_panel.blit(env.root, (col * self.env_width, row * self.env_height))  # Blit environment surface onto main surface
-            self.DISPLAYSURF.blit(self.env_panel, (0,0, WINDOWWIDTH, WINDOWHEIGHT))
-            self.render_side_panel()
-            pygame.display.update()
-            FPSCLOCK.tick(FPS)
+
+                # Blit the scaled environment onto the env_panel
+                self.env_panel.blit(env.root, (col * self.env_width, row * self.env_height))  
+
+            self.DISPLAYSURF.blit(self.env_panel, (0, 0))  # Blit env_panel onto display
+            self.render_side_panel()  # Render side panel
+            pygame.display.update()  # Update display
+            FPSCLOCK.tick(FPS)  # Cap frame rate
+
             if not found:
                 pygame.time.delay(1500)
                 break
