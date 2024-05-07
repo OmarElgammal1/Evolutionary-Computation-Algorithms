@@ -36,11 +36,11 @@ class AntColonyVisualizer(Scene):
     
     def __make_pheromones_intensities_edge_map(self, adj_matrix):
         edge_phero = {}
-        # for i in range(self.n_cities):
-        #     for j in range(i+1, self.n_cities):
-        #         edge_phero[(i, j)] = adj_matrix[i][j]
+        for i in range(self.n_cities):
+            for j in range(i+1, self.n_cities):
+                edge_phero[(i, j)] = adj_matrix[i][j]
         
-        # return edge_phero
+        return edge_phero
     
     def __setup_camera(self, width, height):
         self.camera.frame_width = width        
@@ -78,24 +78,29 @@ class AntColonyVisualizer(Scene):
 
         node_positions = {label: dot.get_center() for label, dot in g.vertices.items()}
         _, _, traversal_history, pheromone_intensities = self.optimize(n_iters=self.N_ITERS, n_ants=self.N_ANTS, degradation_factor=0.1)
-        # edge_phero = self.__make_pheromones_intensities_edge_map(pheromone_intensities)
-        print(pheromone_intensities)
-        # print(edge_phero)
+        edge_phero = self.__make_pheromones_intensities_edge_map(pheromone_intensities[0])
+        # for i in range(self.N_ITERS + 1):
+        #     print(pheromone_intensities[i])
+        print(edge_phero)
 
-        # graph_lines = g.edges # (i, j): Line object -------> where i, j are vertices
-        # edge_labels = []
-        # for i, edge in enumerate(self.edges):
-        #     txt = Tex('1.00', color='#00C8FF')
-        #     txt.set_z_index(10)
-        #     self.add(txt)
-        #     edge_labels.append(txt)
+        graph_lines = g.edges # (i, j): Line object -------> where i, j are vertices
+        edge_labels = []
+        edge_animations = []
+        for i, edge in enumerate(self.edges):
+            line = graph_lines[edge]
+            line_direction = line.get_end() - line.get_start()
+            offset = 1.0 * (line_direction / np.linalg.norm(line_direction))
+            phero = str(round(edge_phero[edge], 2))
+            txt = Tex(phero, color='#00C8FF').set_z_index(10)
+            edge_animations.append(txt.animate.move_to(line.get_start() + offset))
+            edge_labels.append(txt)
 
-        # # self.add(*edge_labels)
 
-        # self.__populate_ant_moves(ant_moves, traversal_history, node_positions)
+        self.__populate_ant_moves(ant_moves, traversal_history, node_positions)
 
-        # # animated scenes
+        # animated scenes
         # self.play(Create(g), runtime=2)
+        # self.play(edge_animations)
 
         # for txt, e in zip(edge_labels, self.edges):
         #     line = graph_lines[e]
@@ -104,52 +109,50 @@ class AntColonyVisualizer(Scene):
         #     phero = str(round(edge_phero[e], 2))
         #     self.play(txt.animate.become(Tex(phero)).move_to(line.get_start() + offset).set_z_index(10))
             
-        # edge_recolor = [graph_lines[edge].animate.set_color(ManimColor.from_rgb((0.0, 0.2, 1.0))).set_stroke(width=10) for edge in self.edges]
-        # self.play(edge_recolor)
+        edge_recolor = [graph_lines[edge].animate.set_color(ManimColor.from_rgb((0.0, 0.2, 1.0))).set_stroke(width=10) for edge in self.edges]
+        self.play(Create(g), edge_animations, edge_recolor, runtime=3)
         
-        # for i in range(0, self.N_ITERS):
-        #     self.play(iteration_text.animate.become(Tex(f"Iteration {i}")).move_to(top_center), runtime=2)
-        #     for j in range(self.n_cities + 1):
-        #         next_ant_positions = ant_moves[i][j]
-        #         moves = [ant_dots[k].animate.move_to(next_ant_positions[k]) for k in range(self.N_ANTS)]
-        #         self.play(moves, runtime=1)
+        for i in range(0, self.N_ITERS):
+            edge_phero = self.__make_pheromones_intensities_edge_map(pheromone_intensities[i + 1])
+            self.play(iteration_text.animate.become(Tex(f"Iteration {i}")).move_to(top_center), runtime=2)
+            for j in range(self.n_cities + 1):
+                next_ant_positions = ant_moves[i][j]
+                moves = [ant_dots[k].animate.move_to(next_ant_positions[k]) for k in range(self.N_ANTS)]
+                self.play(moves, runtime=1)
 
-        #     # Reset dots
-        #     remove_dots = [FadeOut(ant_dots[k]) for k in range(self.N_ANTS)]
-        #     ant_dots = [Dot(color=ManimColor.from_hex("#FF0000")).scale(2).set_z_index(10) for _ in range(self.N_ANTS)]
-        #     create_dots = [Create(ant_dots[k]) for k in range(self.N_ANTS)]
-        #     self.play(remove_dots, create_dots, runtime=3)
+            # Reset dots
+            remove_dots = [FadeOut(ant_dots[k]) for k in range(self.N_ANTS)]
+            ant_dots = [Dot(color=ManimColor.from_hex("#FF0000")).scale(2).set_z_index(10) for _ in range(self.N_ANTS)]
+            create_dots = [Create(ant_dots[k]) for k in range(self.N_ANTS)]
+            self.play(remove_dots, create_dots, runtime=3)
+            self.wait(0.5)
+            # Update edges
+            edge_recolor = []
+            for edge in self.edges:
+                line = graph_lines[edge]
+                line_phero_val = float(edge_phero[edge]) * 10.0
+
+                # R, G, B = line.get_style()['stroke_color'][0].to_rgb()
+                color = interpolate_color(BLUE, GREEN, line_phero_val).to_rgb() # the greater the phero intensity the closer it is to green
+                color[0] = 0 # make red = 0
+                color[1] -= 0.1 # color less green
+                color[2] += 0.1 # make blue bluer
+
+                # edge_recolor.append(line.animate.set_color(ManimColor.from_rgb((R, G, B))).set_stroke(width=10))
+                edge_recolor.append(line.animate.set_color(ManimColor.from_rgb(color)).set_stroke(width=(line_phero_val*20 + 10)))
             
-        #     # Update edges
-        #     edge_recolor = []
-        #     for edge in self.edges:
-        #         line = graph_lines[edge]
-        #         line_phero_val = float(edge_phero[edge]) * 10.0
+            # self.play(edge_recolor)
+            edge_animations = []
+            for txt, e in zip(edge_labels, self.edges):
+                line = graph_lines[e]
+                line_direction = line.get_end() - line.get_start()
+                offset = 1.0 * (line_direction / np.linalg.norm(line_direction))
+                phero = str(round(edge_phero[e], 2))
+                edge_animations.append(txt.animate.become(Tex(phero)).move_to(line.get_start() + offset).set_z_index(10))
+            self.play(edge_recolor, edge_animations, runtime=2)
 
-        #         # R, G, B = line.get_style()['stroke_color'][0].to_rgb()
-        #         color = interpolate_color(BLUE, GREEN, line_phero_val).to_rgb() # the greater the phero intensity the closer it is to green
-        #         color[0] = 0 # make red = 0
-        #         color[1] -= 0.1 # color less green
-        #         color[2] += 0.1 # make blue bluer
-
-        #         # edge_recolor.append(line.animate.set_color(ManimColor.from_rgb((R, G, B))).set_stroke(width=10))
-        #         edge_recolor.append(line.animate.set_color(ManimColor.from_rgb(color)).set_stroke(width=(line_phero_val*20 + 10)))
-            
-        #     animations = []
-        #     self.play(edge_recolor)
-        #     for txt, e in zip(edge_labels, self.edges):
-        #         line = graph_lines[e]
-        #         line_direction = line.get_end() - line.get_start()
-        #         offset = 1.0 * (line_direction / np.linalg.norm(line_direction))
-        #         phero = str(round(edge_phero[e], 2))
-        #         self.play(txt.animate.become(Tex(phero)).move_to(line.get_start() + offset).set_z_index(10))
-        #     # self.play(animations)
-
-        # TODO: Configure edges, add colors (FadeToColor), add labels
         # TODO: Make everything disappear (fade in/fade out) and display best path
-        # TODO: Modify Text writing animation.Write
         # TODO: write cost on edges of best cycle
-        # self.add(*iteration_text)
     
     def optimize(self, n_iters, n_ants, degradation_factor=0.5, q=1, use_elitism=False):
         traversal_history = []
@@ -157,13 +160,13 @@ class AntColonyVisualizer(Scene):
         graph_cpy = self.graph.copy()
         best_cost = float("inf")
         best_cycle = None
-        intensity_history.append(graph_cpy.adj_matrix[:, :, 1])
+        intensity_history.append(graph_cpy.adj_matrix[:, :, 1].copy())
         for _ in range(n_iters):
             ant_cycles = [graph_cpy.traverse(randint(0, self.n_cities - 1)) for _ in range(n_ants)]
             if use_elitism and best_cycle:
                 ant_cycles.append((best_cycle, best_cost))
             
-            traversal_history.append(ant_cycles)
+            traversal_history.append(ant_cycles.copy())
 
             ant_cycles.sort(key=lambda x: x[1])
             if use_elitism and best_cycle and ant_cycles[0][1] < best_cycle[1]:
@@ -173,7 +176,7 @@ class AntColonyVisualizer(Scene):
             for cycle, total_cost in ant_cycles:
                 best_cost, best_cycle = self.__update_best_cycle(cycle, total_cost, best_cycle, best_cost)
                 self.__update_pheromone(graph_cpy, cycle, q, total_cost, degradation_factor)
-            intensity_history.append(graph_cpy.adj_matrix[:, :, 1])
+            intensity_history.append(graph_cpy.adj_matrix[:, :, 1].copy())
 
         return best_cycle, best_cost, traversal_history, intensity_history
     
