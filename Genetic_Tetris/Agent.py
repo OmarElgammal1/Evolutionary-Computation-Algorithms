@@ -1,5 +1,5 @@
 import random
-N_GENES = 7
+N_GENES = 8
 class Agent():
     def __init__(self, chromosome = None):
         self.fitness = 0
@@ -39,5 +39,3 @@ class Agent():
 
     def setChromosome(self, chromosome):
         self.chromosome = chromosome
-
-        

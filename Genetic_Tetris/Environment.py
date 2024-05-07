@@ -694,6 +694,7 @@ class Environment:
         total_blocking_block = 0
         total_holes          = 0
         max_height           = 0
+        bumpiness            = 0
 
         for x2 in range(0, BOARDWIDTH):
             b = self.calc_heuristics(new_board, x2)
@@ -704,7 +705,13 @@ class Environment:
         new_holes           = total_holes - total_holes_bef
         new_blocking_blocks = total_blocking_block - total_blocking_bloks_bef
 
-        return [True, max_height, num_removed_lines, new_holes, new_blocking_blocks, piece_sides, floor_sides, wall_sides]
+        b1 = self.calc_heuristics(new_board, 0)
+        for x2 in range(1, BOARDWIDTH):
+            b2 = self.calc_heuristics(new_board, x2)
+            bumpiness += abs(b2[3] - b1[3])
+            b1 = b2
+
+        return [True, max_height, num_removed_lines, new_holes, new_blocking_blocks, piece_sides, floor_sides, wall_sides, bumpiness]
 
     def calc_initial_move_info(self, board):
         total_holes          = 0
