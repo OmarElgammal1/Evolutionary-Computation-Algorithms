@@ -242,7 +242,7 @@ class Environment:
         # Game Loop
         if not self.flag:
             if self.agent != None:
-                move = self.best_move();
+                move = self.best_move()
                 self.do_move(move)
             self.flag = True
         if (self.falling_piece == None):
@@ -263,7 +263,7 @@ class Environment:
             #eval all possible moves using the agent and choose the best
             #then add to event_queue the events to lead to that move
             if self.agent != None:
-                move = self.best_move();
+                move = self.best_move()
                 self.do_move(move)
         for event in self.event_queue:
             # Event handling loop
@@ -647,7 +647,7 @@ class Environment:
             x -= 1
     def best_move(self):
         total_holes_bef, total_blocking_bloks_bef = self.calc_initial_move_info(self.board)
-        best_rating = -11111111111;
+        best_rating = -11111111111
         best_move = {'x':0, 'r':0}
         for x in range(-TEMPLATEWIDTH, BOARDWIDTH + TEMPLATEWIDTH):
             for r in range(len(PIECES[self.falling_piece['shape']])):
@@ -656,8 +656,8 @@ class Environment:
                     rating = self.agent.evaluateOption(result[1:N_GENES+1])
                     if best_rating <= rating:
                         best_rating = rating
-                        best_move['x'] = x;
-                        best_move['r'] = r;
+                        best_move['x'] = x
+                        best_move['r'] = r
         
         return best_move
 
@@ -887,7 +887,7 @@ class GameEngine:
                     found = True
                     self.can_continue[idx] = env.step()  # Perform environment step
                     if env.turns > max_turns:
-                        self.can_continue[idx] = False;
+                        self.can_continue[idx] = False
                 
                 row = idx // self.cols
                 col = idx % self.cols
