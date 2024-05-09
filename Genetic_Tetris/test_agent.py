@@ -26,9 +26,9 @@ def main():
 			print(f'\tFitness:{engine.environments[i].agent.fitness}')
 			print(f'\tChromosome:{engine.environments[i].agent.chromosome}')
 		
-	engine.run_envs(2500, [agents[0], agents[1]])
-	print(engine.environments[0].turns, engine.environments[0].score)
-	print(engine.environments[1].turns, engine.environments[1].score)
-	print(engine.environments[2].turns, engine.environments[2].score)
+	# engine.run_envs(2500, [agents[0], agents[1]])
+	# print(engine.environments[0].turns, engine.environments[0].score)
+	# print(engine.environments[1].turns, engine.environments[1].score)
+	# print(engine.environments[2].turns, engine.environments[2].score)
 
 main()

@@ -2,6 +2,8 @@ import json
 from pygame.locals import *
 from Agent import Agent
 from Environment import GameEngine
+import random
+
 class Evolution:
 	def __init__(self, gameEngine, populationSize, mutationRate) -> None:
 		self.engine : GameEngine = gameEngine
@@ -20,14 +22,14 @@ class Evolution:
 	def nextGeneration(self,):
 		# sort the population by fitness
 		self.population.sort(key = lambda x: x.fitness, reverse = True)
-		newPopulation = []
-		agent1, agent2 = self.population[0], self.population[1]
+		newPopulation = self.population[0:len(self.population)//2]
+		top = self.population[0:len(self.population)//2]
 		# create the rest of the population
-		for i in range(self.populationSize):
-			# agent1, agent2 = random.choices(self.population, k = 2)
+		for i in range(self.populationSize//2):
+			agent1, agent2 = random.choices(top, k = 2)
 			# mutation
 			newAgent = agent1.crossover(agent2)
-			newAgent.mutate(self.mutationRate)
+			newAgent.mutate(0.25)
 			newPopulation.append(newAgent)
 		# set the new population
 		self.population = newPopulation
@@ -43,7 +45,8 @@ class Evolution:
 
 			for env in self.engine.environments:
 				# env.agent.fitness = env.total_removed_lines + 1500 * env.tetri - 50 * env.calc_initial_move_info(env.board)[0] + env.turns
-				env.agent.fitness = env.score + env.tetri * 1500
+				# print(env.turns)
+				env.agent.fitness = env.score/env.turns + env.tetri * 2 + (env.turns // 100) * 50
 			self.generation_logs.append(
 				sorted(
 					[{'chromosome': agent.chromosome, 'fitness': agent.fitness}
