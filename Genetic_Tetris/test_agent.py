@@ -4,7 +4,7 @@ from Environment import  GameEngine
 from Agent import Agent
 
 
-random.seed(11)
+random.seed(10)
 def main():
 	engine = GameEngine(16, max_cols=4, side_panel_width=150)
 	#load the latest generation's best agent
@@ -13,7 +13,7 @@ def main():
 	agents = [Agent(agen['chromosome']) for agen in gens[-1]]
 	print(len(agents))
 	for i in range(1):
-		random.seed(11)
+		random.seed(10)
 		engine.run_envs(10000, agents)
 		for i in range(16):
 			engine.environments[i].agent.fitness = engine.environments[i].score + engine.environments[i].tetri * 1500

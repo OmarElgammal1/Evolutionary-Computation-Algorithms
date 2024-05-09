@@ -23,10 +23,9 @@ class Evolution:
 		# sort the population by fitness
 		self.population.sort(key = lambda x: x.fitness, reverse = True)
 		newPopulation = self.population[0:len(self.population)//2]
-		top = self.population[0:len(self.population)//2]
 		# create the rest of the population
 		for i in range(self.populationSize//2):
-			agent1, agent2 = random.choices(top, k = 2)
+			agent1, agent2 = random.choices(self.population, k = 2)
 			# mutation
 			newAgent = agent1.crossover(agent2)
 			newAgent.mutate(0.25)
