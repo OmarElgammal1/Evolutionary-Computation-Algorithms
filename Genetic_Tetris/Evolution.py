@@ -42,8 +42,8 @@ class Evolution:
 			self.engine.run_envs(maxTurns, self.population, True)
 
 			for env in self.engine.environments:
-				env.agent.fitness = env.total_removed_lines + 1500 * env.tetri - 50 * env.calc_initial_move_info(env.board)[0] + env.turns
-
+				# env.agent.fitness = env.total_removed_lines + 1500 * env.tetri - 50 * env.calc_initial_move_info(env.board)[0] + env.turns
+				env.agent.fitness = env.score + env.tetri * 1500
 			self.generation_logs.append(
 				sorted(
 					[{'chromosome': agent.chromosome, 'fitness': agent.fitness}
