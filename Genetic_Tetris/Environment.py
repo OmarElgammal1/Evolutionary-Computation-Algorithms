@@ -9,7 +9,7 @@ from time import sleep
 ##############################################################################
 
 # Board config
-FPS          = 500
+FPS          = 1000
 # WINDOWWIDTH  = 650 # 500
 WINDOWWIDTH  = 650
 WINDOWHEIGHT = 690
@@ -186,14 +186,19 @@ class Environment:
 
         self.width = width
         self.height = height
-        self.root = pygame.Surface((self.width, self.height))
-        self.box_size = int(BOXSIZE * (self.width / Environment.BASIC_WIDTH))
-        # self.box_size = BOXSIZE
-        self.XMARGIN      = int(10 * (self.width / Environment.BASIC_WIDTH))
-        # self.XMARGIN      = 10
+        # print(f"width: {self.width} and height: {self.height}")
+        self.root = pygame.Surface((width, height))
+        self.box_size = self.width // 26 + (self.height // 410)*(395 // self.width) * 7
+        # self.box_size = 5
+        # print(f"Box Size: {self.box_size}")s
+        # self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2) // 4 + 15
+        self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2) // 4 + (self.box_size * 6)\
+            - (self.height // 410)*(395 // self.width) * 100
+        self.TOPMARGIN    = self.height - (BOARDHEIGHT * self.box_size) - (self.box_size * 6)\
+            + (self.height // 410) * 150 - (self.height // 410)*(395 // self.width) * 150
+            
 
-        # self.TOPMARGIN = 40
-        self.TOPMARGIN = int(40 * (self.height / Environment.BASIC_HEIGHT))
+        self.tetri = 0
         self.event_queue = []
         self.board              = self.get_blank_board()
         self.last_movedown_time = time.time()
@@ -235,12 +240,13 @@ class Environment:
         self.flag = False
 
         self.total_removed_lines = 0
+
     def step(self):
         # Setup variables
         # Game Loop
         if not self.flag:
             if self.agent != None:
-                move = self.best_move();
+                move = self.best_move()
                 self.do_move(move)
             self.flag = True
         if (self.falling_piece == None):
@@ -261,7 +267,7 @@ class Environment:
             #eval all possible moves using the agent and choose the best
             #then add to event_queue the events to lead to that move
             if self.agent != None:
-                move = self.best_move();
+                move = self.best_move()
                 self.do_move(move)
         for event in self.event_queue:
             # Event handling loop
@@ -360,6 +366,7 @@ class Environment:
                 elif (num_removed_lines == 3):
                     self.score += 300
                 elif (num_removed_lines == 4):
+                    self.tetri += 1
                     self.score += 1200
                 self.total_removed_lines += num_removed_lines
                 self.level, self.fall_freq = self.calc_level_and_fall_freq(self.score)
@@ -578,7 +585,7 @@ class Environment:
         
 
         # Fill the background of the board
-        pygame.draw.rect(self.root, BGCOLOR, (self.XMARGIN, self.TOPMARGIN, self.box_size * BOARDWIDTH, self.box_size * BOARDHEIGHT))
+        pygame.draw.rect(self.root, BGCOLOR, (self.XMARGIN + 1, self.TOPMARGIN, self.box_size * BOARDWIDTH, self.box_size * BOARDHEIGHT))
 
         # Draw the individual boxes on the board
         for x in range(BOARDWIDTH):
@@ -589,19 +596,20 @@ class Environment:
         """Draw status"""
 
         # Draw the score text
-        score_surf = BASICFONT.render('Score: %s' % score, True, TEXTCOLOR)
+        score_surf = BASICFONT.render('Score: %s' % (score), True, TEXTCOLOR)
         score_rect = score_surf.get_rect()
-        # score_rect.topleft = (self.width - 150, 80)
-        score_rect.topleft = (self.XMARGIN + self.box_size * (BOARDWIDTH + 2), 80)
+        # score_rect.topleft = (self.width - int(5/13 * self.width), int(8/690 * self.height))
         # score_rect.topleft = (self.width - int(7/13 * self.width), int(400/690 * self.height))
-
+        score_rect.topleft = (self.XMARGIN - (200//self.height)*42 + (self.height//410)*(1), (200//self.height)*(self.height - 30) + (self.height//410)*(self.height - 25))
         self.root.blit(score_surf, score_rect)
 
-        # draw the level text
-        levelSurf = BASICFONT.render('Turn: %s' % self.turns, True, TEXTCOLOR)
-        levelRect = levelSurf.get_rect()
 
-        levelRect.topleft = (self.XMARGIN + self.box_size * (BOARDWIDTH + 2), 110)
+        # draw the level text
+        levelSurf = BASICFONT.render('Turn: %s' % (self.turns), True, TEXTCOLOR)
+        levelRect = levelSurf.get_rect()
+        # levelRect.topleft = (self.width - int(3/13 * self.width), int(110/690*self.height))
+        # levelRect.topleft = (self.width - int(7/13 * self.width), int((400+(110-8))/690*self.height))
+        levelRect.topright = (self.XMARGIN + (200//self.height)*(self.width - 50 - 3) + (self.height//410)*(300) , (200//self.height)*(self.height - 17) + (self.height//410)*(self.height - 25))
         self.root.blit(levelSurf, levelRect)
 
     def draw_piece(self, piece, pixelx=None, pixely=None):
@@ -651,7 +659,7 @@ class Environment:
             x -= 1
     def best_move(self):
         total_holes_bef, total_blocking_bloks_bef = self.calc_initial_move_info(self.board)
-        best_rating = -11111111111;
+        best_rating = -11111111111
         best_move = {'x':0, 'r':0}
         for x in range(-TEMPLATEWIDTH, BOARDWIDTH + TEMPLATEWIDTH):
             for r in range(len(PIECES[self.falling_piece['shape']])):
@@ -660,8 +668,8 @@ class Environment:
                     rating = self.agent.evaluateOption(result[1:N_GENES+1])
                     if best_rating <= rating:
                         best_rating = rating
-                        best_move['x'] = x;
-                        best_move['r'] = r;
+                        best_move['x'] = x
+                        best_move['r'] = r
         
         return best_move
 
@@ -698,6 +706,7 @@ class Environment:
         total_blocking_block = 0
         total_holes          = 0
         max_height           = 0
+        bumpiness            = 0
 
         for x2 in range(0, BOARDWIDTH):
             b = self.calc_heuristics(new_board, x2)
@@ -708,7 +717,13 @@ class Environment:
         new_holes           = total_holes - total_holes_bef
         new_blocking_blocks = total_blocking_block - total_blocking_bloks_bef
 
-        return [True, max_height, num_removed_lines, new_holes, new_blocking_blocks, piece_sides, floor_sides, wall_sides]
+        # b1 = self.calc_heuristics(new_board, 0)
+        # for x2 in range(1, BOARDWIDTH):
+        #     b2 = self.calc_heuristics(new_board, x2)
+        #     bumpiness += abs(b2[3] - b1[3])
+        #     b1 = b2
+
+        return [True, max_height, num_removed_lines, new_holes, new_blocking_blocks, piece_sides, floor_sides, wall_sides, bumpiness]
 
     def calc_initial_move_info(self, board):
         total_holes          = 0
@@ -734,12 +749,15 @@ class Environment:
         blocks_above_holes = 0
         is_hole_exist      = False
         sum_heights        = 0
+        max = 0
 
         for y in range(BOARDHEIGHT-1, -1,-1):
             if board[x][y] == BLANK:
                 locals_holes += 1
             else:
                 sum_heights += BOARDHEIGHT-y
+                if max < BOARDHEIGHT-y:
+                    max = BOARDHEIGHT-y
 
                 if locals_holes > 0:
                     total_holes += locals_holes
@@ -748,7 +766,7 @@ class Environment:
                 if total_holes > 0:
                     blocks_above_holes += 1
 
-        return total_holes, blocks_above_holes, sum_heights
+        return total_holes, blocks_above_holes, sum_heights, max
 
     def calc_sides_in_contact(self, board, piece):
         """Calculate sides in contacts"""
@@ -888,8 +906,8 @@ class GameEngine:
                     found = True
                     self.can_continue[idx] = env.step()  # Perform environment step
                     if env.turns > max_turns:
-                        self.can_continue[idx] = False;
-
+                        self.can_continue[idx] = False
+                
                 row = idx // self.cols
                 col = idx % self.cols
 

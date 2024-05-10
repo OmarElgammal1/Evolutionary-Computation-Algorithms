@@ -1,7 +1,8 @@
-import random, math
+import random
 N_GENES = 7
 class Agent():
     def __init__(self, chromosome = None):
+        self.fitness = 0
         if chromosome == None:
             self.chromosome = []
             for _ in range(N_GENES):
@@ -31,18 +32,10 @@ class Agent():
     def mutate(self, mutationRate):
         for i in range(N_GENES):
             if random.random() <= mutationRate:
-                self.chromosome[i] = random.uniform(-1, 1)
+                self.chromosome[i] += random.uniform(-0.05, 0.05)
+
     def getChromosome(self):
         return self.chromosome
 
     def setChromosome(self, chromosome):
         self.chromosome = chromosome
-
-    def normalizeChromosome(self):
-        mod = 0
-        for gene in self.chromosome:
-            mod += gene * gene
-        mod = math.sqrt(mod)
-        for i in range(len(self.chromosome)):
-            self.chromosome[i] /= mod
-        
