@@ -723,7 +723,25 @@ class Environment:
         #     bumpiness += abs(b2[3] - b1[3])
         #     b1 = b2
 
-        return [True, max_height, num_removed_lines, new_holes, new_blocking_blocks, piece_sides, floor_sides, wall_sides]
+        # Create a hypothetical board
+        new_board = self.get_blank_board()
+        for x2 in range(BOARDWIDTH):
+            for y in range(BOARDHEIGHT):
+                new_board[x2][y] = board[x2][y]
+        # Add the piece to the new_board
+        self.add_to_board(new_board, piece)
+        left_empty_blocks, right_empty_blocks = self.calc_empty_side_blocks(new_board)
+        return [True,
+                max_height,
+                num_removed_lines,
+                new_holes,
+                new_blocking_blocks,
+                piece_sides,
+                floor_sides,
+                wall_sides,
+                left_empty_blocks,
+                right_empty_blocks,
+            ]
 
     def calc_initial_move_info(self, board):
         total_holes          = 0
