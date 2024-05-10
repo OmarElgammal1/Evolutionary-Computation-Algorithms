@@ -723,7 +723,7 @@ class Environment:
         #     bumpiness += abs(b2[3] - b1[3])
         #     b1 = b2
 
-        return [True, max_height, num_removed_lines, new_holes, new_blocking_blocks, piece_sides, floor_sides, wall_sides, bumpiness]
+        return [True, max_height, num_removed_lines, new_holes, new_blocking_blocks, piece_sides, floor_sides, wall_sides]
 
     def calc_initial_move_info(self, board):
         total_holes          = 0
