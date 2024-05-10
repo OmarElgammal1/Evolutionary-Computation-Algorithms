@@ -814,6 +814,38 @@ class Environment:
 
         return  piece_sides, floor_sides, wall_sides
 
+    
+    def calc_empty_side_blocks(self, board):
+        """
+            Calculate number of empty blocks on both left and right sides till min height, 
+        """
+        # calculate left side
+        left_empty_rows = 0
+        for y in range(BOARDHEIGHT-1, -1, -1):
+            full = True
+            for x in range(1, BOARDWIDTH):
+                #is line not full?
+                if board[x][y] == BLANK:
+                    full = False
+                    break;
+            if full and board[0][y] == BLANK:
+                left_empty_rows +=1
+            else:
+                break;
+        #calculate right side
+        right_empty_rows = 0
+        for y in range(BOARDHEIGHT-1, -1, -1):
+            full = True
+            for x in range(0, BOARDWIDTH-1):
+                #is line not full?
+                if board[x][y] == BLANK:
+                    full = False
+                    break;
+            if full and board[BOARDWIDTH-1][y] == BLANK:
+                right_empty_rows +=1
+            else:
+                break;
+        return left_empty_rows, right_empty_rows
 #endregion
 
 class GameEngine:
