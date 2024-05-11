@@ -1,5 +1,5 @@
 import random
-N_GENES = 7
+N_GENES = 10
 class Agent():
     def __init__(self, chromosome = None):
         self.fitness = 0
@@ -9,14 +9,17 @@ class Agent():
                 self.chromosome.append(random.uniform(-1, 1))
         else:
             self.chromosome = chromosome
+
     def evaluateOptions(self, options):
         bestIndex = 0
+        # print(len(options))
         for i in range(len(options)):
             if self.evaluateOption(options[i]) > self.evaluateOption(options[bestIndex]):
                 bestIndex = i
         return bestIndex
 
     def evaluateOption(self, option):
+        # print(len(option))
         value = 0
         for i in range(N_GENES):
             value += self.chromosome[i] * option[i]

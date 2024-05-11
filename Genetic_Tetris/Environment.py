@@ -11,8 +11,8 @@ from time import sleep
 # Board config
 FPS          = 1000
 # WINDOWWIDTH  = 650 # 500
-WINDOWWIDTH  = 650
-WINDOWHEIGHT = 690
+WINDOWWIDTH  = 790
+WINDOWHEIGHT = 800
 BOXSIZE      = 25
 BOARDWIDTH   = 10
 BOARDHEIGHT  = 25
@@ -551,11 +551,6 @@ class Environment:
 
 #region DrawStuff
     #relative number to the width
-    def rel(self,num, w_or_h = "w"):
-        if w_or_h == "w":
-            return int(num * (self.width / Environment.BASIC_WIDTH))
-        if w_or_h == "h":
-            return int(num * (self.height / Environment.BASIC_HEIGHT))
     def draw_box(self, boxx, boxy, color, pixelx=None, pixely=None):
         """Draw box
 
@@ -576,14 +571,12 @@ class Environment:
     def draw_board(self, board):
         """Draw board"""
 
-        # Draw the border around the board\
-        border_width = int(5 * (self.width / Environment.BASIC_WIDTH))
-
-
-        pygame.draw.rect(self.root, BORDERCOLOR, (self.XMARGIN - self.rel(2) + 1, self.TOPMARGIN - self.rel(6, "h") + 1, (BOARDWIDTH * self.box_size) + self.rel(7) + 1, (BOARDHEIGHT * self.box_size) + self.rel(7, 'h') + 1), border_width)
-
+        # Draw the border around the board
+        pygame.draw.rect(self.root, BORDERCOLOR, (self.XMARGIN - 3, self.TOPMARGIN - 7, (BOARDWIDTH * self.box_size) + 8, (BOARDHEIGHT * self.box_size) + 8), 5)
         
-
+        pygame.draw.rect(self.root, (11,11,11), pygame.Rect(0, 0, self.width, self.height), 2)
+        # pygame.draw.rect(self.root, 'red', (0, 0, self.width, self.height), 2)
+        
         # Fill the background of the board
         pygame.draw.rect(self.root, BGCOLOR, (self.XMARGIN + 1, self.TOPMARGIN, self.box_size * BOARDWIDTH, self.box_size * BOARDHEIGHT))
 
@@ -591,7 +584,7 @@ class Environment:
         for x in range(BOARDWIDTH):
             for y in range(BOARDHEIGHT):
                 self.draw_box(x, y, board[x][y])
-
+            
     def draw_status(self, score, level):
         """Draw status"""
 
@@ -634,6 +627,7 @@ class Environment:
         # draw the "next" piece
         # self.draw_piece(piece, pixelx=self.width-int(3 / 13 * self.width), pixely=int(160/690*self.height))
         self.draw_piece(piece, pixelx=self.XMARGIN + self.box_size * (BOARDWIDTH + 1), pixely=160)
+
 #endregion
 #region Stats
     ##############################################################################
@@ -657,6 +651,7 @@ class Environment:
             self.event_queue.append(pygame.event.Event(KEYDOWN, {"key": K_LEFT}))
             self.event_queue.append(pygame.event.Event(KEYUP, {"key": K_LEFT}))
             x -= 1
+
     def best_move(self):
         total_holes_bef, total_blocking_bloks_bef = self.calc_initial_move_info(self.board)
         best_rating = -11111111111
@@ -717,11 +712,11 @@ class Environment:
         new_holes           = total_holes - total_holes_bef
         new_blocking_blocks = total_blocking_block - total_blocking_bloks_bef
 
-        # b1 = self.calc_heuristics(new_board, 0)
-        # for x2 in range(1, BOARDWIDTH):
-        #     b2 = self.calc_heuristics(new_board, x2)
-        #     bumpiness += abs(b2[3] - b1[3])
-        #     b1 = b2
+        b1 = self.calc_heuristics(new_board, 0)
+        for x2 in range(1, BOARDWIDTH):
+            b2 = self.calc_heuristics(new_board, x2)
+            bumpiness += abs(b2[3] - b1[3])
+            b1 = b2
 
         # Create a hypothetical board
         new_board = self.get_blank_board()
@@ -741,6 +736,7 @@ class Environment:
                 wall_sides,
                 left_empty_blocks,
                 right_empty_blocks,
+                bumpiness,
             ]
 
     def calc_initial_move_info(self, board):
@@ -831,8 +827,7 @@ class Environment:
                         #(there can be no pieces on top)
 
         return  piece_sides, floor_sides, wall_sides
-
-    
+  
     def calc_empty_side_blocks(self, board):
         """
             Calculate number of empty blocks on both left and right sides till min height, 
@@ -891,6 +886,7 @@ class GameEngine:
         self.side_panel_data = {}
 
         self.paused = False
+
     def reset_envs(self, new_pieces = [], agents : list[Agent] = []):
         for idx, env in enumerate(self.environments):
             env.reset(new_pieces, agents[idx] if idx < len(agents) else None)
