@@ -625,8 +625,8 @@ class Environment:
         """Draw next piece"""
 
         # draw the "next" piece
-        # self.draw_piece(piece, pixelx=self.width-int(3 / 13 * self.width), pixely=int(160/690*self.height))
-        self.draw_piece(piece, pixelx=self.XMARGIN + self.box_size * (BOARDWIDTH + 1), pixely=160)
+        self.draw_piece(piece, pixelx=self.width-int(3 / 13 * self.width), pixely=int(160/690*self.height))
+        # self.draw_piece(piece, pixelx=self.XMARGIN + self.box_size * (BOARDWIDTH + 1), pixely=160)
 
 #endregion
 #region Stats

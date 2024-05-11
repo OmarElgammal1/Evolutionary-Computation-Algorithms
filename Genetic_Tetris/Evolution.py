@@ -25,14 +25,15 @@ class Evolution:
 	def nextGeneration(self,):
 		# sort the population by fitness
 		self.population.sort(key = lambda x: x.fitness, reverse = True)
-		self.c1['scores'].append(self.population[0].score)
-		self.c1['number_of_turns'].append(self.population[0].turns)
-		self.c2['scores'].append(self.population[1].score)
-		self.c2['number_of_turns'].append(self.population[1].turns)
+		# self.c1['scores'].append(self.population[0].score)
+		# self.c1['number_of_turns'].append(self.population[0].turns)
+		# self.c2['scores'].append(self.population[1].score)
+		# self.c2['number_of_turns'].append(self.population[1].turns)
+
 		newPopulation = self.population[0:len(self.population)//2]
-		best = self.population[0:len(self.population)//4]
+		best = self.population[0:len(self.population)//2]
 		# create the rest of the population
-		for i in range(3 * (self.populationSize//4)):
+		for i in range(self.populationSize//2):
 			agent1, agent2 = random.choices(best, k = 2)
 			# mutation
 			newAgent = agent1.crossover(agent2)
