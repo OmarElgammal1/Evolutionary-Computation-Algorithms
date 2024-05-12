@@ -9,7 +9,7 @@ import numpy as np
 class AntColonyVisualizer(Scene):
     def __init__(self):
         super().__init__()
-        self.N_CITIES = 10
+        self.N_CITIES = 4
         self.N_ANTS = 5
         self.N_ITERS = 5
         self.ADJ_MAT = adjacency_mat_generator.adjacency_matrix_test1()
