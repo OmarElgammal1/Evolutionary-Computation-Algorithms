@@ -30,18 +30,35 @@ class Evolution:
 		# self.c2['scores'].append(self.population[1].score)
 		# self.c2['number_of_turns'].append(self.population[1].turns)
 
-		newPopulation = self.population[0:len(self.population)//2]
-		best = self.population[0:len(self.population)//2]
-		# create the rest of the population
-		for i in range(self.populationSize//2):
+		# roulette selection for new population
+		newPopulation = []
+		probabilities = [agent.fitness for agent in self.population]
+
+		newPopulation = random.choices(self.population, probabilities, k = 8)
+		best = [i for i in newPopulation]
+		# create the new population
+		for i in range(self.populationSize):
 			agent1, agent2 = random.choices(best, k = 2)
-			# mutation
+			# crossover
 			newAgent = agent1.crossover(agent2)
-			newAgent.mutate(0.25)
+			# mutation
+			newAgent.mutate(self.mutationRate)
 			newPopulation.append(newAgent)
 		# set the new population
 		self.population = newPopulation
 
+		# newPopulation = self.population[0:len(self.population)//2]
+		# best = self.population[0:len(self.population)//2]
+
+		# # create the rest of the population
+		# for i in range(self.populationSize//2):
+		# 	agent1, agent2 = random.choices(best, k = 2)
+		# 	# mutation
+		# 	newAgent = agent1.crossover(agent2)
+		# 	newAgent.mutate(0.25)
+		# 	newPopulation.append(newAgent)
+		# # set the new population
+		# self.population = newPopulation
 
 	def evolve(self, numGenerations, maxTurns):
 		
