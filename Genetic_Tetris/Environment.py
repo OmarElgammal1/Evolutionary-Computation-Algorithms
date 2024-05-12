@@ -197,7 +197,7 @@ class Environment:
         self.TOPMARGIN    = self.height - (BOARDHEIGHT * self.box_size) - (self.box_size * 6)\
             + (self.height // 410) * 150 - (self.height // 410)*(395 // self.width) * 150
             
-        self.eval_next_move = True
+        self.eval_next_move = False
         self.tetri = 0
         self.event_queue = []
         self.board              = self.get_blank_board()
@@ -642,6 +642,7 @@ class Environment:
     def do_move(self, move):
         piece = dict(self.falling_piece)
         r = piece['rotation']
+
         while r != move['r']:
             self.event_queue.append(pygame.event.Event(KEYDOWN, {'key': K_UP}))
             self.event_queue.append(pygame.event.Event(KEYUP, {'key': K_UP}))
@@ -669,7 +670,7 @@ class Environment:
                     if result[2] > 3:
                         best_move['x'] = x
                         best_move['r'] = r
-                        return best_move
+                        return best_move, best_rating
                     first_rating = self.agent.evaluateOption(result[1:N_GENES+1])
                     if eval_next_move:
                         new_board = self.copy_board(board)
