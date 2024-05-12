@@ -246,7 +246,7 @@ class Environment:
         # Game Loop
         if not self.flag:
             if self.agent != None:
-                move = self.best_move(self.board)
+                move, _ = self.best_move(self.board)
                 self.do_move(move)
             self.flag = True
         if (self.falling_piece == None):
@@ -267,7 +267,7 @@ class Environment:
             #eval all possible moves using the agent and choose the best
             #then add to event_queue the events to lead to that move
             if self.agent != None:
-                move = self.best_move(self.board)
+                move, _ = self.best_move(self.board)
                 self.do_move(move)
         for event in self.event_queue:
             # Event handling loop
@@ -670,12 +670,12 @@ class Environment:
                         best_move['x'] = x
                         best_move['r'] = r
                         return best_move
-                    rating = self.agent.evaluateOption(result[1:N_GENES+1])
-                    if best_rating <= rating:
-                        best_rating = rating
+                    first_rating = self.agent.evaluateOption(result[1:N_GENES+1])
+                    if best_rating <= first_rating:
+                        best_rating = first_rating
                         best_move['x'] = x
                         best_move['r'] = r
-        return best_move
+        return best_move, best_rating
         
 
     def calc_move_info(self, board, piece, x, r, total_holes_bef, total_blocking_bloks_bef):
