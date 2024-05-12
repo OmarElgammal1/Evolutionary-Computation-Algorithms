@@ -41,7 +41,4 @@ class TSPGraph:
         total_cost += self.adj_matrix[cycle[-1]][cycle[0]][0] # returning to source
         return cycle, total_cost
 
-# graph = TSPGraph(4)
-# print(graph.adj_matrix)
-# print(graph.traverse())
 

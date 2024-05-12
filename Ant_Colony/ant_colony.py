@@ -1,7 +1,6 @@
 from graph import TSPGraph
 import adjacency_mat_generator
 from random import randint
-from manim import *
 
 class AntColonyOptimization:
     def __init__(self, adj_mat, n_cities, alpha=1, beta=1):
@@ -20,8 +19,6 @@ class AntColonyOptimization:
             if use_elitism and best_cycle:
                 ant_cycles.append((best_cycle, best_cost))
                 
-            if not (i % 20):
-                print(ant_cycles)
             self.traversal_history.append(ant_cycles.copy())
             
             ant_cycles.sort(key=lambda x: x[1])
