@@ -197,7 +197,7 @@ class Environment:
         self.TOPMARGIN    = self.height - (BOARDHEIGHT * self.box_size) - (self.box_size * 6)\
             + (self.height // 410) * 150 - (self.height // 410)*(395 // self.width) * 150
             
-
+        self.eval_next_move = True
         self.tetri = 0
         self.event_queue = []
         self.board              = self.get_blank_board()
@@ -246,7 +246,7 @@ class Environment:
         # Game Loop
         if not self.flag:
             if self.agent != None:
-                move = self.best_move()
+                move, _ = self.best_move(self.board, self.falling_piece, self.eval_next_move)
                 self.do_move(move)
             self.flag = True
         if (self.falling_piece == None):
@@ -267,7 +267,7 @@ class Environment:
             #eval all possible moves using the agent and choose the best
             #then add to event_queue the events to lead to that move
             if self.agent != None:
-                move = self.best_move()
+                move, _ = self.best_move(self.board, self.falling_piece, self.eval_next_move)
                 self.do_move(move)
         for event in self.event_queue:
             # Event handling loop
@@ -476,7 +476,13 @@ class Environment:
             board.append([BLANK] * BOARDHEIGHT)
 
         return board
-
+    
+    def copy_board(self, board):
+        new_board = self.get_blank_board()
+        for x2 in range(BOARDWIDTH):
+            for y in range(BOARDHEIGHT):
+                new_board[x2][y] = board[x2][y]
+        return new_board
     def is_on_board(self, x, y):
         """Check if the piece is on the board"""
 
@@ -488,7 +494,7 @@ class Environment:
         for x in range(TEMPLATEWIDTH):
             for y in range(TEMPLATEHEIGHT):
                 is_above_board = y + piece['y'] + adj_Y < 0
-
+                
                 if is_above_board or PIECES[piece['shape']][piece['rotation']][y][x] == BLANK:
                     continue
 
@@ -652,31 +658,37 @@ class Environment:
             self.event_queue.append(pygame.event.Event(KEYUP, {"key": K_LEFT}))
             x -= 1
 
-    def best_move(self, eval_next_move=False):
-        if not eval_next_move:
-            total_holes_bef, total_blocking_bloks_bef = self.calc_initial_move_info(self.board)
-            best_rating = -11111111111
-            best_move = {'x':0, 'r':0}
-            for x in range(-TEMPLATEWIDTH, BOARDWIDTH + TEMPLATEWIDTH):
-                for r in range(len(PIECES[self.falling_piece['shape']])):
-                    result = self.calc_move_info(self.board, dict(self.falling_piece),x, r, total_holes_bef, total_blocking_bloks_bef)
-                    
-                    if result[0]:
-                        if result[2] > 3:
-                            best_move['x'] = x
-                            best_move['r'] = r
-                            return best_move
-                        rating = self.agent.evaluateOption(result[1:N_GENES+1])
-                        if best_rating <= rating:
-                            best_rating = rating
-                            best_move['x'] = x
-                            best_move['r'] = r
-            return best_move
-        else:
-            return
-    def calc_best_move_with_next(self):
-        pass
-    
+    def best_move(self,board , piece, eval_next_move=False):
+        total_holes_bef, total_blocking_bloks_bef = self.calc_initial_move_info(board)
+        best_rating = -11111111111
+        best_move = {'x':0, 'r':0}
+        for x in range(-TEMPLATEWIDTH, BOARDWIDTH + TEMPLATEWIDTH):
+            for r in range(len(PIECES[piece['shape']])):
+                result = self.calc_move_info(board, dict(piece),x, r, total_holes_bef, total_blocking_bloks_bef)
+                if result[0]:
+                    if result[2] > 3:
+                        best_move['x'] = x
+                        best_move['r'] = r
+                        return best_move
+                    first_rating = self.agent.evaluateOption(result[1:N_GENES+1])
+                    if eval_next_move:
+                        new_board = self.copy_board(board)
+
+                        played_piece = dict(piece)
+                        played_piece['x'] = x
+                        played_piece['rotation'] = r
+                        while self.is_valid_position(board, played_piece, adj_X=0, adj_Y=1):
+                            played_piece['y']+=1
+                        self.add_to_board(new_board, played_piece)
+                        sec_best_move, second_rating = self.best_move(new_board, self.next_piece, False)
+                        first_rating += second_rating
+                    if best_rating <= first_rating:
+                        best_rating = first_rating
+                        best_move['x'] = x
+                        best_move['r'] = r
+        return best_move, best_rating
+        
+
     def calc_move_info(self, board, piece, x, r, total_holes_bef, total_blocking_bloks_bef):
         """Calculate informations based on the current play"""
 
@@ -687,7 +699,6 @@ class Environment:
         # Check if it's a valid position
         if (not self.is_valid_position(board, piece)):
             return [False]
-
         # Goes down the piece while it's a valid position
         while self.is_valid_position(board, piece, adj_X=0, adj_Y=1):
             piece['y']+=1
