@@ -35,7 +35,8 @@ class Agent():
     def mutate(self, mutationRate):
         for i in range(N_GENES):
             if random.random() <= mutationRate:
-                self.chromosome[i] += random.uniform(-0.05, 0.05)
+                # self.chromosome[i] += random.uniform(-0.05, 0.05)
+                self.chromosome[i] = random.uniform(-1, 1)
 
     def getChromosome(self):
         return self.chromosome

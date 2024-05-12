@@ -16,13 +16,16 @@ class Evolution:
 		self.generateRandomPopulation()
 		self.generation_logs = []
 
-	def generateRandomPopulation(self):
-		# self.population = []
-		# for i in range(self.populationSize):
-		# 	self.population.append(Agent())
+	def loadPopulation(self):
 		with open("generations.json") as f:
 			gens = json.load(f)
 		self.population = [Agent(agen['chromosome']) for agen in gens[-1]]
+
+	def generateRandomPopulation(self):
+		self.population = []
+		for i in range(self.populationSize):
+			self.population.append(Agent())
+		
 
 
 	def nextGeneration(self,):
