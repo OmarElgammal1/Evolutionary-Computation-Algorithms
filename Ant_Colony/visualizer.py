@@ -9,9 +9,9 @@ import numpy as np
 class AntColonyVisualizer(Scene):
     def __init__(self):
         super().__init__()
-        self.N_CITIES = 4
-        self.N_ANTS = 10
-        self.N_ITERS = 10
+        self.N_CITIES = 10
+        self.N_ANTS = 5
+        self.N_ITERS = 5
         self.ADJ_MAT = adjacency_mat_generator.adjacency_matrix_test1()
 
         self.ant_colony_optimizer = AntColonyOptimization(self.ADJ_MAT, self.N_CITIES, alpha=1, beta=1)
@@ -23,10 +23,12 @@ class AntColonyVisualizer(Scene):
         g = Graph(self.nodes, self.edges, layout="spring", layout_scale=12,
                   labels=True, vertex_config={'radius':0.5})
         self.__setup_camera(40, 30)
+        self.camera.background_color = ManimColor.from_hex("#1B1F42")
+
         top_center = [-15, 10, 0]
 
         
-        ant_dots = [Dot(color=ManimColor.from_hex("#FF0000")).scale(2).set_z_index(10) for _ in range(self.N_ANTS)]
+        ant_dots = [Dot(color=ManimColor.from_hex("#FF0000")).scale(3).set_z_index(10) for _ in range(self.N_ANTS)]
         self.add(*ant_dots)
 
         ant_moves = [[[] for _ in range(self.n_cities + 1)] for _ in range(self.N_ITERS)] # each iteration has n movements = n_cities (for each cycle)
@@ -42,7 +44,7 @@ class AntColonyVisualizer(Scene):
         self.__populate_edge_label_animation(edge_labels.values(), graph_lines, edge_phero, edge_animations)
         self.__populate_ant_moves(ant_moves, self.ant_colony_optimizer.traversal_history, node_positions)
             
-        edge_recolor = [graph_lines[edge].animate.set_color(ManimColor.from_rgb((0.0, 0.2, 1.0))).set_stroke(width=10) for edge in self.edges]
+        edge_recolor = [graph_lines[edge].animate.set_color(ManimColor.from_rgb((1.0, 1.0, 1.0))).set_stroke(width=10) for edge in self.edges]
         self.play(Create(g), edge_animations, edge_recolor, runtime=3)
         
         for i in range(0, self.N_ITERS):
@@ -55,7 +57,7 @@ class AntColonyVisualizer(Scene):
 
             # Reset dots
             remove_dots = [FadeOut(ant_dots[k]) for k in range(self.N_ANTS)]
-            ant_dots = [Dot(color=ManimColor.from_hex("#FF0000")).scale(2).set_z_index(10) for _ in range(self.N_ANTS)]
+            ant_dots = [Dot(color=ManimColor.from_hex("#FF0000")).scale(3).set_z_index(10) for _ in range(self.N_ANTS)]
             create_dots = [Create(ant_dots[k]) for k in range(self.N_ANTS)]
             if i == self.N_ITERS - 1:
                 self.play(remove_dots, runtime=3)
@@ -88,12 +90,35 @@ class AntColonyVisualizer(Scene):
         non_used_edges = self.__get_non_used_edges(best_cycle)
         for edge in non_used_edges:
             self.play(FadeOut(graph_lines[edge]), FadeOut(edge_labels[edge]))
+        
+        # setup best cycle animations
+        return_edge = (dest_node, src_node)
+        if return_edge not in graph_lines:
+            return_edge = (src_node, dest_node)
+        
+        non_used_edges = set(non_used_edges)
+        cost_display = []
+        for edge in self.edges:
+            if edge not in non_used_edges or edge == return_edge:
+                line = graph_lines[edge]
+                cost = str(int(self.ADJ_MAT[edge[0], edge[1], 0]))
 
-        self.play(best_cycle_text, src_color, dest_color, Create(ant), runtime=6)
+                line_direction = line.get_end() - line.get_start()
+                offset = 2.0 * (line_direction / np.linalg.norm(line_direction))
 
+                position = line.get_start() + offset
+                cost_display.append(edge_labels[edge].animate.become(Tex(cost).move_to(position).set_z_index(10).scale(1.5).set_color(ManimColor.from_hex("#4CAE43"))))
+
+
+        # self.play(Tex('RETURN EDGE').animate.move_to(return_edge_line.get_center()))
+        return_edge_animation = FadeIn(graph_lines[return_edge].set_color(RED))
+        self.play(cost_display, best_cycle_text, src_color, dest_color, return_edge_animation, Create(ant), runtime=6)
+
+        # animate best cycle
         for i in range(len(best_cycle) - 1):
             self.play(ant.animate.move_to(node_positions[best_cycle[i + 1]]))
-
+        self.play(ant.animate.move_to(node_positions[best_cycle[0]]))
+        self.play(FadeOut(ant))
     
     def __make_edges(self, n):
         edges = []
@@ -132,16 +157,18 @@ class AntColonyVisualizer(Scene):
                 line_direction = line.get_end() - line.get_start()
                 offset = 2.0 * (line_direction / np.linalg.norm(line_direction))
                 phero = str(round(edge_phero[e], 2))
-                edge_animations.append(txt.animate.become(Tex(phero)).move_to(line.get_start() + offset).set_z_index(10))
+                edge_animations.append(txt.animate.become(Tex(phero)).move_to(line.get_start() + offset).scale(1.5).set_z_index(10).set_color(ManimColor.from_hex("#4CAE43")))
 
     def __get_edge_colors(self, edge_pheromone_val):
-        color = interpolate_color(BLUE, GREEN, edge_pheromone_val).to_rgb() # the greater the phero intensity the closer it is to green
-        color[0] = 0 # make red = 0
-        color[1] -= 0.1 # color less green
-        color[2] += 0.1 # make blue bluer
+        # color = interpolate_color(BLUE, GREEN, edge_pheromone_val).to_rgb() # the greater the phero intensity the closer it is to green
+        color = interpolate_color(YELLOW, ORANGE, edge_pheromone_val).to_rgb() # the greater the phero intensity the closer it is to Orange
+        color[0] += 0.1 # increase red
+        # color[1] -= 0.1 # color less green
+        # color[2] -= 0.2 # make blue bluer
         return color
-
+    
     def __populate_edge_recolor_animations(self, graph_lines, edge_phero, edge_recolor):
+        max_phero = max(edge_phero.values())
         for edge in self.edges:
                 line = graph_lines[edge]
                 line_phero_val = float(edge_phero[edge]) * 10.0
