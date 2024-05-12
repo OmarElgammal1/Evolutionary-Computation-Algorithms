@@ -659,7 +659,12 @@ class Environment:
         for x in range(-TEMPLATEWIDTH, BOARDWIDTH + TEMPLATEWIDTH):
             for r in range(len(PIECES[self.falling_piece['shape']])):
                 result = self.calc_move_info(self.board, dict(self.falling_piece),x, r, total_holes_bef, total_blocking_bloks_bef)
+                
                 if result[0]:
+                    if result[2] > 3:
+                        best_move['x'] = x
+                        best_move['r'] = r
+                        return best_move
                     rating = self.agent.evaluateOption(result[1:N_GENES+1])
                     if best_rating <= rating:
                         best_rating = rating
@@ -732,12 +737,12 @@ class Environment:
                 new_holes,
                 new_blocking_blocks,
                 piece_sides,
-                floor_sides,
-                wall_sides,
-                left_empty_blocks,
                 right_empty_blocks,
-                bumpiness,
+                bumpiness
             ]
+            # floor_sides,
+                # wall_sides,
+                # left_empty_blocks,
 
     def calc_initial_move_info(self, board):
         total_holes          = 0
