@@ -652,27 +652,31 @@ class Environment:
             self.event_queue.append(pygame.event.Event(KEYUP, {"key": K_LEFT}))
             x -= 1
 
-    def best_move(self):
-        total_holes_bef, total_blocking_bloks_bef = self.calc_initial_move_info(self.board)
-        best_rating = -11111111111
-        best_move = {'x':0, 'r':0}
-        for x in range(-TEMPLATEWIDTH, BOARDWIDTH + TEMPLATEWIDTH):
-            for r in range(len(PIECES[self.falling_piece['shape']])):
-                result = self.calc_move_info(self.board, dict(self.falling_piece),x, r, total_holes_bef, total_blocking_bloks_bef)
-                
-                if result[0]:
-                    if result[2] > 3:
-                        best_move['x'] = x
-                        best_move['r'] = r
-                        return best_move
-                    rating = self.agent.evaluateOption(result[1:N_GENES+1])
-                    if best_rating <= rating:
-                        best_rating = rating
-                        best_move['x'] = x
-                        best_move['r'] = r
-        
-        return best_move
-
+    def best_move(self, eval_next_move=False):
+        if not eval_next_move:
+            total_holes_bef, total_blocking_bloks_bef = self.calc_initial_move_info(self.board)
+            best_rating = -11111111111
+            best_move = {'x':0, 'r':0}
+            for x in range(-TEMPLATEWIDTH, BOARDWIDTH + TEMPLATEWIDTH):
+                for r in range(len(PIECES[self.falling_piece['shape']])):
+                    result = self.calc_move_info(self.board, dict(self.falling_piece),x, r, total_holes_bef, total_blocking_bloks_bef)
+                    
+                    if result[0]:
+                        if result[2] > 3:
+                            best_move['x'] = x
+                            best_move['r'] = r
+                            return best_move
+                        rating = self.agent.evaluateOption(result[1:N_GENES+1])
+                        if best_rating <= rating:
+                            best_rating = rating
+                            best_move['x'] = x
+                            best_move['r'] = r
+            return best_move
+        else:
+            return
+    def calc_best_move_with_next(self):
+        pass
+    
     def calc_move_info(self, board, piece, x, r, total_holes_bef, total_blocking_bloks_bef):
         """Calculate informations based on the current play"""
 
