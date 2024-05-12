@@ -741,12 +741,23 @@ class Environment:
                 new_holes,
                 new_blocking_blocks,
                 piece_sides,
-                right_empty_blocks,
-                bumpiness
+                floor_sides,
+                wall_sides,
             ]
-            # floor_sides,
-                # wall_sides,
-                # left_empty_blocks,
+            
+            # [True,
+            #     max_height,
+            #     num_removed_lines,
+            #     new_holes,
+            #     new_blocking_blocks,
+            #     piece_sides,
+            #     floor_sides,
+            #     wall_sides,
+            #     left_empty_blocks,
+            #     right_empty_blocks,
+            #     bumpiness
+            # ]
+
 
     def calc_initial_move_info(self, board):
         total_holes          = 0

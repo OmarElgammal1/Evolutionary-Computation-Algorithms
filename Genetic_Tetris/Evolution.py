@@ -40,11 +40,11 @@ class Evolution:
 		newPopulation = []
 		probabilities = [agent.fitness for agent in self.population]
 
-		newPopulation = random.choices(self.population, probabilities, k = 8)
+		newPopulation = self.population[:8]
 		best = [i for i in newPopulation]
 		# create the new population
 		for i in range(self.populationSize):
-			agent1, agent2 = random.choices(best, k = 2)
+			agent1, agent2 = random.choices(self.population, probabilities, k = 2)
 			# crossover
 			newAgent = agent1.crossover(agent2)
 			# mutation
