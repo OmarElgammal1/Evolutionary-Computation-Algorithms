@@ -71,8 +71,8 @@ class Evolution:
 			for env in self.engine.environments:
 				# env.agent.fitness = env.total_removed_lines + 1500 * env.tetri - 50 * env.calc_initial_move_info(env.board)[0] + env.turns
 				# print(env.turns)
-				env.agent.fitness = env.score/env.turns + env.tetri * 2 + (env.turns // 100) * 50\
-					- env.calc_initial_move_info(env.board)[0] - env.calc_initial_move_info(env.board)[1] * 2
+				env.agent.fitness = env.score/env.turns + env.tetri * 2 + (env.turns // 100) * 50 # \
+					# - env.calc_initial_move_info(env.board)[0] - env.calc_initial_move_info(env.board)[1] * 2
 				env.agent.turns = env.turns
 				env.agent.score = env.score
 			self.generation_logs.append(
