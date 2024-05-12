@@ -671,6 +671,11 @@ class Environment:
                         best_move['r'] = r
                         return best_move
                     first_rating = self.agent.evaluateOption(result[1:N_GENES+1])
+                    if eval_next_move:
+                        new_board = self.copy_board(board)
+                        self.add_to_board(new_board, new_board)
+                        sec_best_move, second_rating = self.best_move(new_board)
+                        first_rating += second_rating
                     if best_rating <= first_rating:
                         best_rating = first_rating
                         best_move['x'] = x
