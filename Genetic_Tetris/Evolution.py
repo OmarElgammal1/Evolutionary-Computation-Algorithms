@@ -3,7 +3,7 @@ from pygame.locals import *
 from Agent import Agent
 from Environment import GameEngine
 import random
-# from visualization import train_plots
+from visualization import train_plots
 
 class Evolution:
 	def __init__(self, gameEngine, populationSize, mutationRate) -> None:
@@ -25,10 +25,10 @@ class Evolution:
 	def nextGeneration(self,):
 		# sort the population by fitness
 		self.population.sort(key = lambda x: x.fitness, reverse = True)
-		# self.c1['scores'].append(self.population[0].score)
-		# self.c1['number_of_turns'].append(self.population[0].turns)
-		# self.c2['scores'].append(self.population[1].score)
-		# self.c2['number_of_turns'].append(self.population[1].turns)
+		self.c1['scores'].append(self.population[0].score)
+		self.c1['number_of_turns'].append(self.population[0].turns)
+		self.c2['scores'].append(self.population[1].score)
+		self.c2['number_of_turns'].append(self.population[1].turns)
 
 		# roulette selection for new population
 		newPopulation = []
@@ -71,7 +71,7 @@ class Evolution:
 			for env in self.engine.environments:
 				# env.agent.fitness = env.total_removed_lines + 1500 * env.tetri - 50 * env.calc_initial_move_info(env.board)[0] + env.turns
 				# print(env.turns)
-				env.agent.fitness = env.score/env.turns + env.tetri * 2 + (env.turns // 100) * 50 # \
+				env.agent.fitness = env.score/env.turns + env.tetri * 10 + (env.turns // 100) * 50 # \
 					# - env.calc_initial_move_info(env.board)[0] - env.calc_initial_move_info(env.board)[1] * 2
 				env.agent.turns = env.turns
 				env.agent.score = env.score
@@ -81,7 +81,7 @@ class Evolution:
 	  					for agent in self.population], key=lambda x: x['fitness'], reverse=True))
 			self.save_generation_log()
 			self.nextGeneration()
-		# train_plots(self.c1, self.c2)
+		train_plots(self.c1, self.c2)
 
 	def save_generation_log(self):
 		with open("generations.json", 'w') as file:
