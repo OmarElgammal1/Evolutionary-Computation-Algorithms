@@ -246,7 +246,7 @@ class Environment:
         # Game Loop
         if not self.flag:
             if self.agent != None:
-                move = self.best_move()
+                move = self.best_move(self.board)
                 self.do_move(move)
             self.flag = True
         if (self.falling_piece == None):
@@ -267,7 +267,7 @@ class Environment:
             #eval all possible moves using the agent and choose the best
             #then add to event_queue the events to lead to that move
             if self.agent != None:
-                move = self.best_move()
+                move = self.best_move(self.board)
                 self.do_move(move)
         for event in self.event_queue:
             # Event handling loop
@@ -666,7 +666,6 @@ class Environment:
             for x in range(-TEMPLATEWIDTH, BOARDWIDTH + TEMPLATEWIDTH):
                 for r in range(len(PIECES[self.falling_piece['shape']])):
                     result = self.calc_move_info(board, dict(self.falling_piece),x, r, total_holes_bef, total_blocking_bloks_bef)
-                    
                     if result[0]:
                         if result[2] > 3:
                             best_move['x'] = x
@@ -680,25 +679,7 @@ class Environment:
             return best_move
         else:
             return
-    def calc_best_move_with_next(self, board):
-        total_holes_bef, total_blocking_bloks_bef = self.calc_initial_move_info(self.board)
-        best_rating = -11111111111
-        best_move = {'x':0, 'r':0}
-        for x in range(-TEMPLATEWIDTH, BOARDWIDTH + TEMPLATEWIDTH):
-            for r in range(len(PIECES[self.falling_piece['shape']])):
-                result = self.calc_move_info(self.board, dict(self.falling_piece),x, r, total_holes_bef, total_blocking_bloks_bef)
-                
-                if result[0]:
-                    if result[2] > 3:
-                        best_move['x'] = x
-                        best_move['r'] = r
-                        return best_move
-                    rating = self.agent.evaluateOption(result[1:N_GENES+1])
-                    if best_rating <= rating:
-                        best_rating = rating
-                        best_move['x'] = x
-                        best_move['r'] = r
-        return best_move
+        
 
     def calc_move_info(self, board, piece, x, r, total_holes_bef, total_blocking_bloks_bef):
         """Calculate informations based on the current play"""
