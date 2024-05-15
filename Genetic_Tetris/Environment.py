@@ -9,7 +9,7 @@ from time import sleep
 ##############################################################################
 
 # Board config
-FPS          = 500
+FPS          = 1000
 # WINDOWWIDTH  = 650 # 500
 WINDOWWIDTH  = 790
 WINDOWHEIGHT = 800
@@ -179,19 +179,26 @@ MANUAL_GAME = False
 # Setting the random seed
 
 class Environment:
-    def __init__(self, width = WINDOWWIDTH, height = WINDOWHEIGHT) -> None:
+    BASIC_WIDTH = 450
+    BASIC_HEIGHT = 690
+
+    def __init__(self, width =450, height = 690, next_pieces=[]) -> None:
+
         self.width = width
         self.height = height
         # print(f"width: {self.width} and height: {self.height}")
         self.root = pygame.Surface((width, height))
-        # self.box_size = self.width // 26
-        self.box_size = 5
-        # print(f"Box Size: {self.box_size}")
+        self.box_size = self.width // 26 + (self.height // 410)*(395 // self.width) * 7
+        # self.box_size = 5
+        # print(f"Box Size: {self.box_size}")s
         # self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2) // 4 + 15
-        self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2) // 4
-        # self.TOPMARGIN    = self.height - (BOARDHEIGHT * self.box_size) - 25
-        self.TOPMARGIN    = self.height - (BOARDHEIGHT * self.box_size) - 25
-
+        self.XMARGIN      = int((self.width - BOARDWIDTH * self.box_size) / 2) // 4 + (self.box_size * 6)\
+            - (self.height // 410)*(395 // self.width) * 100
+        self.TOPMARGIN    = self.height - (BOARDHEIGHT * self.box_size) - (self.box_size * 6)\
+            + (self.height // 410) * 150 - (self.height // 410)*(395 // self.width) * 150
+            
+        self.eval_next_move = False
+        self.tetri = 0
         self.event_queue = []
         self.board              = self.get_blank_board()
         self.last_movedown_time = time.time()
@@ -202,13 +209,18 @@ class Environment:
         self.moving_right       = False
         self.score              = 0
         self.level, self.fall_freq   = self.calc_level_and_fall_freq(self.score)
+
+        self.next_piece_index = 0
+        self.next_pieces = next_pieces
         self.falling_piece      = self.get_new_piece()
         self.next_piece         = self.get_new_piece()
+        self.total_removed_lines = 0
+
         self.turns = 0
         self.flag = False
         # print(self.height - (BOARDHEIGHT * self.box_size) - 50)
         
-    def reset(self):
+    def reset(self, new_pieces=[], agent: Agent = None):
         self.event_queue  = []
         self.board              = self.get_blank_board()
         self.last_movedown_time = time.time()
@@ -219,18 +231,22 @@ class Environment:
         self.moving_right       = False
         self.score              = 0
         self.level, self.fall_freq   = self.calc_level_and_fall_freq(self.score)
+        self.next_piece_index = 0
+        self.next_pieces = new_pieces
         self.falling_piece      = self.get_new_piece()
         self.next_piece         = self.get_new_piece()
-        self.agent : Agent= None
+        self.agent = agent
         self.turns = 0
         self.flag = False
+
+        self.total_removed_lines = 0
 
     def step(self):
         # Setup variables
         # Game Loop
         if not self.flag:
-            if hasattr(self, "agent"):
-                move = self.best_move();
+            if self.agent != None:
+                move, _ = self.best_move(self.board, self.falling_piece, self.eval_next_move)
                 self.do_move(move)
             self.flag = True
         if (self.falling_piece == None):
@@ -250,24 +266,13 @@ class Environment:
             #if the environment has an agent
             #eval all possible moves using the agent and choose the best
             #then add to event_queue the events to lead to that move
-            if hasattr(self, "agent"):
-                move = self.best_move();
+            if self.agent != None:
+                move, _ = self.best_move(self.board, self.falling_piece, self.eval_next_move)
                 self.do_move(move)
         for event in self.event_queue:
             # Event handling loop
             if (event.type == KEYUP):
-                if (event.key == K_p):
-                    # PAUSE the game
-                    self.root.fill(BGCOLOR)
-                    # Pause until a key press
-                    self.show_text_screen('Paused')
-
-                    # Update times
-                    self.last_fall_time     = time.time()
-                    self.last_movedown_time = time.time()
-                    self.last_moveside_time = time.time()
-
-                elif (event.key == K_LEFT or event.key == K_a):
+                if (event.key == K_LEFT or event.key == K_a):
                     self.moving_left = False
                 elif (event.key == K_RIGHT or event.key == K_d):
                     self.moving_right = False
@@ -361,8 +366,9 @@ class Environment:
                 elif (num_removed_lines == 3):
                     self.score += 300
                 elif (num_removed_lines == 4):
+                    self.tetri += 1
                     self.score += 1200
-
+                self.total_removed_lines += num_removed_lines
                 self.level, self.fall_freq = self.calc_level_and_fall_freq(self.score)
                 self.falling_piece    = None
 
@@ -442,7 +448,9 @@ class Environment:
 
     def get_new_piece(self, ):
         """Return a random new piece in a random rotation and color"""
-
+        if self.next_piece_index < len(self.next_pieces):
+            self.next_piece_index += 1
+            return dict(self.next_pieces[self.next_piece_index-1])
         shape     = random.choice(list(PIECES.keys()))
         new_piece = {'shape': shape,
                     'rotation': random.randint(0, len(PIECES[shape]) - 1),
@@ -468,7 +476,13 @@ class Environment:
             board.append([BLANK] * BOARDHEIGHT)
 
         return board
-
+    
+    def copy_board(self, board):
+        new_board = self.get_blank_board()
+        for x2 in range(BOARDWIDTH):
+            for y in range(BOARDHEIGHT):
+                new_board[x2][y] = board[x2][y]
+        return new_board
     def is_on_board(self, x, y):
         """Check if the piece is on the board"""
 
@@ -480,7 +494,7 @@ class Environment:
         for x in range(TEMPLATEWIDTH):
             for y in range(TEMPLATEHEIGHT):
                 is_above_board = y + piece['y'] + adj_Y < 0
-
+                
                 if is_above_board or PIECES[piece['shape']][piece['rotation']][y][x] == BLANK:
                     continue
 
@@ -542,6 +556,7 @@ class Environment:
         return (self.XMARGIN + (boxx * self.box_size)), (self.TOPMARGIN + (boxy * self.box_size))
 
 #region DrawStuff
+    #relative number to the width
     def draw_box(self, boxx, boxy, color, pixelx=None, pixely=None):
         """Draw box
 
@@ -569,31 +584,31 @@ class Environment:
         # pygame.draw.rect(self.root, 'red', (0, 0, self.width, self.height), 2)
         
         # Fill the background of the board
-        pygame.draw.rect(self.root, BGCOLOR, (self.XMARGIN, self.TOPMARGIN, self.box_size * BOARDWIDTH, self.box_size * BOARDHEIGHT))
+        pygame.draw.rect(self.root, BGCOLOR, (self.XMARGIN + 1, self.TOPMARGIN, self.box_size * BOARDWIDTH, self.box_size * BOARDHEIGHT))
 
         # Draw the individual boxes on the board
         for x in range(BOARDWIDTH):
             for y in range(BOARDHEIGHT):
                 self.draw_box(x, y, board[x][y])
-
+            
     def draw_status(self, score, level):
         """Draw status"""
 
         # Draw the score text
-        score_surf = BASICFONT.render('Score: %s' % score, True, TEXTCOLOR)
+        score_surf = BASICFONT.render('Score: %s' % (score), True, TEXTCOLOR)
         score_rect = score_surf.get_rect()
         # score_rect.topleft = (self.width - int(5/13 * self.width), int(8/690 * self.height))
-        # score_rect.topleft = (self.XMARGIN + self.box_size * (BOARDWIDTH + 1), int(8/690 * self.height))
-        score_rect.topleft = (self.width - int(7/13 * self.width), int(400/690 * self.height))
-
+        # score_rect.topleft = (self.width - int(7/13 * self.width), int(400/690 * self.height))
+        score_rect.topleft = (self.XMARGIN - (200//self.height)*42 + (self.height//410)*(1), (200//self.height)*(self.height - 30) + (self.height//410)*(self.height - 25))
         self.root.blit(score_surf, score_rect)
 
+
         # draw the level text
-        levelSurf = BASICFONT.render('Turn: %s' % self.turns, True, TEXTCOLOR)
+        levelSurf = BASICFONT.render('Turn: %s' % (self.turns), True, TEXTCOLOR)
         levelRect = levelSurf.get_rect()
         # levelRect.topleft = (self.width - int(3/13 * self.width), int(110/690*self.height))
-        # levelRect.topleft = (self.XMARGIN + self.box_size * (BOARDWIDTH + 1), int(110/690*self.height))
-        levelRect.topleft = (self.width - int(7/13 * self.width), int((400+(110-8))/690*self.height))
+        # levelRect.topleft = (self.width - int(7/13 * self.width), int((400+(110-8))/690*self.height))
+        levelRect.topright = (self.XMARGIN + (200//self.height)*(self.width - 50 - 3) + (self.height//410)*(300) , (200//self.height)*(self.height - 17) + (self.height//410)*(self.height - 25))
         self.root.blit(levelSurf, levelRect)
 
     def draw_piece(self, piece, pixelx=None, pixely=None):
@@ -616,8 +631,9 @@ class Environment:
         """Draw next piece"""
 
         # draw the "next" piece
-        # self.draw_piece(piece, pixelx=self.width-int(3 / 13 * self.width), pixely=int(160/690*self.height))
-        self.draw_piece(piece, pixelx=self.XMARGIN + self.box_size * (BOARDWIDTH + 1), pixely=int(160/690*self.height))
+        self.draw_piece(piece, pixelx=self.width-int(3 / 13 * self.width), pixely=int(160/690*self.height))
+        # self.draw_piece(piece, pixelx=self.XMARGIN + self.box_size * (BOARDWIDTH + 1), pixely=160)
+
 #endregion
 #region Stats
     ##############################################################################
@@ -626,6 +642,7 @@ class Environment:
     def do_move(self, move):
         piece = dict(self.falling_piece)
         r = piece['rotation']
+
         while r != move['r']:
             self.event_queue.append(pygame.event.Event(KEYDOWN, {'key': K_UP}))
             self.event_queue.append(pygame.event.Event(KEYUP, {'key': K_UP}))
@@ -641,21 +658,37 @@ class Environment:
             self.event_queue.append(pygame.event.Event(KEYDOWN, {"key": K_LEFT}))
             self.event_queue.append(pygame.event.Event(KEYUP, {"key": K_LEFT}))
             x -= 1
-    def best_move(self):
-        total_holes_bef, total_blocking_bloks_bef = self.calc_initial_move_info(self.board)
-        best_rating = -11111111111;
+
+    def best_move(self,board , piece, eval_next_move=False):
+        total_holes_bef, total_blocking_bloks_bef = self.calc_initial_move_info(board)
+        best_rating = -11111111111
         best_move = {'x':0, 'r':0}
         for x in range(-TEMPLATEWIDTH, BOARDWIDTH + TEMPLATEWIDTH):
-            for r in range(len(PIECES[self.falling_piece['shape']])):
-                result = self.calc_move_info(self.board, dict(self.falling_piece),x, r, total_holes_bef, total_blocking_bloks_bef)
+            for r in range(len(PIECES[piece['shape']])):
+                result = self.calc_move_info(board, dict(piece),x, r, total_holes_bef, total_blocking_bloks_bef)
                 if result[0]:
-                    rating = self.agent.evaluateOption(result[1:N_GENES+1])
-                    if best_rating <= rating:
-                        best_rating = rating
-                        best_move['x'] = x;
-                        best_move['r'] = r;
+                    if result[2] > 3:
+                        best_move['x'] = x
+                        best_move['r'] = r
+                        return best_move, best_rating
+                    first_rating = self.agent.evaluateOption(result[1:N_GENES+1])
+                    if eval_next_move:
+                        new_board = self.copy_board(board)
+
+                        played_piece = dict(piece)
+                        played_piece['x'] = x
+                        played_piece['rotation'] = r
+                        while self.is_valid_position(board, played_piece, adj_X=0, adj_Y=1):
+                            played_piece['y']+=1
+                        self.add_to_board(new_board, played_piece)
+                        sec_best_move, second_rating = self.best_move(new_board, self.next_piece, False)
+                        first_rating += second_rating
+                    if best_rating <= first_rating:
+                        best_rating = first_rating
+                        best_move['x'] = x
+                        best_move['r'] = r
+        return best_move, best_rating
         
-        return best_move
 
     def calc_move_info(self, board, piece, x, r, total_holes_bef, total_blocking_bloks_bef):
         """Calculate informations based on the current play"""
@@ -667,7 +700,6 @@ class Environment:
         # Check if it's a valid position
         if (not self.is_valid_position(board, piece)):
             return [False]
-
         # Goes down the piece while it's a valid position
         while self.is_valid_position(board, piece, adj_X=0, adj_Y=1):
             piece['y']+=1
@@ -690,6 +722,7 @@ class Environment:
         total_blocking_block = 0
         total_holes          = 0
         max_height           = 0
+        bumpiness            = 0
 
         for x2 in range(0, BOARDWIDTH):
             b = self.calc_heuristics(new_board, x2)
@@ -700,7 +733,43 @@ class Environment:
         new_holes           = total_holes - total_holes_bef
         new_blocking_blocks = total_blocking_block - total_blocking_bloks_bef
 
-        return [True, max_height, num_removed_lines, new_holes, new_blocking_blocks, piece_sides, floor_sides, wall_sides]
+        b1 = self.calc_heuristics(new_board, 0)
+        for x2 in range(1, BOARDWIDTH):
+            b2 = self.calc_heuristics(new_board, x2)
+            bumpiness += abs(b2[3] - b1[3])
+            b1 = b2
+
+        # Create a hypothetical board
+        new_board = self.get_blank_board()
+        for x2 in range(BOARDWIDTH):
+            for y in range(BOARDHEIGHT):
+                new_board[x2][y] = board[x2][y]
+        # Add the piece to the new_board
+        self.add_to_board(new_board, piece)
+        left_empty_blocks, right_empty_blocks = self.calc_empty_side_blocks(new_board)
+        return [True,
+                max_height,
+                num_removed_lines,
+                new_holes,
+                new_blocking_blocks,
+                piece_sides,
+                floor_sides,
+                wall_sides,
+            ]
+            
+            # [True,
+            #     max_height,
+            #     num_removed_lines,
+            #     new_holes,
+            #     new_blocking_blocks,
+            #     piece_sides,
+            #     floor_sides,
+            #     wall_sides,
+            #     left_empty_blocks,
+            #     right_empty_blocks,
+            #     bumpiness
+            # ]
+
 
     def calc_initial_move_info(self, board):
         total_holes          = 0
@@ -726,12 +795,15 @@ class Environment:
         blocks_above_holes = 0
         is_hole_exist      = False
         sum_heights        = 0
+        max = 0
 
         for y in range(BOARDHEIGHT-1, -1,-1):
             if board[x][y] == BLANK:
                 locals_holes += 1
             else:
                 sum_heights += BOARDHEIGHT-y
+                if max < BOARDHEIGHT-y:
+                    max = BOARDHEIGHT-y
 
                 if locals_holes > 0:
                     total_holes += locals_holes
@@ -740,7 +812,7 @@ class Environment:
                 if total_holes > 0:
                     blocks_above_holes += 1
 
-        return total_holes, blocks_above_holes, sum_heights
+        return total_holes, blocks_above_holes, sum_heights, max
 
     def calc_sides_in_contact(self, board, piece):
         """Calculate sides in contacts"""
@@ -787,7 +859,38 @@ class Environment:
                         #(there can be no pieces on top)
 
         return  piece_sides, floor_sides, wall_sides
-
+  
+    def calc_empty_side_blocks(self, board):
+        """
+            Calculate number of empty blocks on both left and right sides till min height, 
+        """
+        # calculate left side
+        left_empty_rows = 0
+        for y in range(BOARDHEIGHT-1, -1, -1):
+            full = True
+            for x in range(1, BOARDWIDTH):
+                #is line not full?
+                if board[x][y] == BLANK:
+                    full = False
+                    break;
+            if full and board[0][y] == BLANK:
+                left_empty_rows +=1
+            else:
+                break;
+        #calculate right side
+        right_empty_rows = 0
+        for y in range(BOARDHEIGHT-1, -1, -1):
+            full = True
+            for x in range(0, BOARDWIDTH-1):
+                #is line not full?
+                if board[x][y] == BLANK:
+                    full = False
+                    break;
+            if full and board[BOARDWIDTH-1][y] == BLANK:
+                right_empty_rows +=1
+            else:
+                break;
+        return left_empty_rows, right_empty_rows
 #endregion
 
 class GameEngine:
@@ -797,49 +900,53 @@ class GameEngine:
 
         FPSCLOCK    = pygame.time.Clock()
         self.DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
-        BASICFONT   = pygame.font.Font('freesansbold.ttf', -(-18 // max_cols)  +  2 * max_cols)
-        BIGFONT     = pygame.font.Font('freesansbold.ttf', -(-100 // max_cols) +  2 * max_cols)
+        BIGFONT     = pygame.font.Font('freesansbold.ttf', 100)
         self.sidepanel_font     = pygame.font.Font('freesansbold.ttf', 16)
-        self.cols = max_cols
+        self.cols = max_cols if max_cols < n_envs else n_envs
         self.rows = n_envs // max_cols + (n_envs % max_cols > 0)
-        self.STARTED = 0
         pygame.display.set_caption('Tetris AI')
         self.env_width = (WINDOWWIDTH - side_panel_width) // self.cols
         self.env_height = WINDOWHEIGHT // self.rows
         self.side_panel_width = side_panel_width
         self.side_panel_surf = pygame.Surface((side_panel_width, WINDOWHEIGHT))
 
+        BASICFONT   = pygame.font.Font('freesansbold.ttf',int(34 * (self.env_width / Environment.BASIC_WIDTH)))
+
         self.env_panel = pygame.Surface((WINDOWWIDTH - side_panel_width, WINDOWHEIGHT))
         self.environments = [Environment(self.env_width, self.env_height) for _ in range(n_envs)]
         self.can_continue = [True for _ in range(n_envs)]
         self.side_panel_data = {}
 
-    def reset_envs(self):
-        # print("RESETTING")
+        self.paused = False
+
+    def reset_envs(self, new_pieces = [], agents : list[Agent] = []):
         for idx, env in enumerate(self.environments):
-            env.reset()
+            env.reset(new_pieces, agents[idx] if idx < len(agents) else None)
             self.can_continue[idx] = True
-        if self.STARTED != 0: 
-            pygame.time.delay(1500)
-        else:
-            self.STARTED = 1
 
-    def check_quit(self):
-        for event in pygame.event.get(QUIT): # get all the QUIT events
-            self.terminate() # terminate if any QUIT events are present
-        for event in pygame.event.get(KEYUP): # get all the KEYUP events
-            if event.key == K_ESCAPE:
-                self.terminate() # terminate if the KEYUP event was for the Esc key
-            pygame.event.post(event) # put the other KEYUP event objects back
-
+    def get_new_pieces(self, n_pieces):
+        pieces = []
+        for i in range(n_pieces):
+            shape     = random.choice(list(PIECES.keys()))
+            new_piece = {'shape': shape,
+                        'rotation': random.randint(0, len(PIECES[shape]) - 1),
+                        'x': int(BOARDWIDTH / 2) - int(TEMPLATEWIDTH / 2),
+                        'y': -2, # start it above the board (i.e. less than 0)
+                        'color': random.randint(0, len(COLORS)-1)}
+            pieces.append(new_piece)
+        return pieces
+    
     def propagate_events(self):
-        for event in pygame.event.get([KEYUP, KEYDOWN]):
+        for event in pygame.event.get([KEYUP, KEYDOWN, QUIT]):
+            if event.type == QUIT or event.key == K_ESCAPE:
+                self.terminate()
+                return
+            if (event.type == KEYUP and event.key == K_p):
+                self.paused = not self.paused
             for env in self.environments:
                 env.event_queue.append(event)
 
     def terminate(self):
-        """Terminate the game"""
-        # print("EXITING")
         pygame.quit()
         sys.exit()
 
@@ -859,24 +966,37 @@ class GameEngine:
         # Blit the side panel onto the main display surface
         self.DISPLAYSURF.blit(self.side_panel_surf, (WINDOWWIDTH - self.side_panel_width, 0))
 
-    def run_envs(self, maxTurns):
+    def run_envs(self, max_turns, agents=[], has_same_pieces=True):
+        if has_same_pieces:
+            self.reset_envs(self.get_new_pieces(max_turns), agents)
+        else:
+            self.reset_envs([], agents)
+
         while True:
             self.env_panel.fill((0, 0, 0))  # Clear the main display surface
-            found = False
-            self.check_quit()
+            found = False                   # found env that is still running
             self.propagate_events()
+            if self.paused:
+                continue
+
             for idx, env in enumerate(self.environments):
                 if self.can_continue[idx]:
                     found = True
                     self.can_continue[idx] = env.step()  # Perform environment step
-                    if env.turns > maxTurns:
-                        self.can_continue[idx] = False;
+                    if env.turns > max_turns:
+                        self.can_continue[idx] = False
+                
                 row = idx // self.cols
                 col = idx % self.cols
-                self.env_panel.blit(env.root, (col * self.env_width, row * self.env_height))  # Blit environment surface onto main surface
-            self.DISPLAYSURF.blit(self.env_panel, (0,0))
-            self.render_side_panel()
-            pygame.display.update()
-            FPSCLOCK.tick(FPS)
+
+                # Blit the scaled environment onto the env_panel
+                self.env_panel.blit(env.root, (col * self.env_width, row * self.env_height))  
+
+            self.DISPLAYSURF.blit(self.env_panel, (0, 0))  # Blit env_panel onto display
+            self.render_side_panel()  # Render side panel
+            pygame.display.update()  # Update display
+            FPSCLOCK.tick(FPS)  # Cap frame rate
+
             if not found:
+                pygame.time.delay(1500)
                 break
