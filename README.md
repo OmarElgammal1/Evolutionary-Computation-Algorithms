@@ -62,7 +62,7 @@ winget install MiKTeX.MiKTeX
 ```
 manim visualizer.py AntColonyVisualizer -pqm
 ```
-Warning: The video will take time to render depending on the number of Cities, Iterations, and Ants
+> Warning: The video will take time to render depending on the number of Cities, Iterations, and Ants
 
 ## Usage
 
