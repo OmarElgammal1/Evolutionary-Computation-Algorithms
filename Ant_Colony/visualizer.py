@@ -1,5 +1,4 @@
 import adjacency_mat_generator
-import networkx as nx
 import matplotlib.pyplot as plt
 from random import randint
 from ant_colony import AntColonyOptimization
