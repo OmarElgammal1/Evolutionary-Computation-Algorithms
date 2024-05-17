@@ -50,6 +50,7 @@ python -u main.py
 ```
 ## **Optional** installation to run manim
 1- You can follow the Manim installation from the [documentation](https://docs.manim.community/en/stable/installation.html) but we will walk through it together.
+
 2- Install FFMPEG, in windows u can do that using:
 ```
 winget install ffmpeg
