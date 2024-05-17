@@ -12,7 +12,7 @@ This project is a collection of Evolutionary Computation Algorithms, including:
     * Uses **Seaborn** to visualize the performance of the top 2 chromosomes during training.
     * Includes a **report** explaining the algorithm and results.
     * Provides a **presentation** for further explanation.
-* ### Ant Colony Optimization:
+* ### Swarm Algorithm:
     * Simulates Ant Colony Optimization (ACO) with all its key concepts.
     * Applies it to solve the **Travelling Salesman Problem**.
     * Creates videos using **Manim** to visualize ant movement, travel cycles, and pheromone values.
@@ -48,6 +48,22 @@ pip install -r requirements.txt
 ```sh
 python -u main.py
 ```
+## **Optional** installation to run manim
+1- You can follow the Manim installation from the [documentation](https://docs.manim.community/en/stable/installation.html) but we will walk through it together.
+2- Install FFMPEG, in windows u can do that using:
+```
+winget install ffmpeg
+```
+3- Install [MiKTeX](https://miktex.org/download) or in console using the command: 
+```
+winget install MiKTeX.MiKTeX
+```
+4- Now go to the Ant_Colony directory and run the following command:
+```
+manim visualizer.py AntColonyVisualizer -pqm
+```
+Warning: The video will take time to render depending on the number of Cities, Iterations, and Ants
+
 ## Usage
 
 This project is designed to be a user-friendly resource for learning Evolutionary Computation Algorithms (ECA). It provides:
